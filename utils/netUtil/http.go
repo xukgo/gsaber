@@ -58,13 +58,13 @@ func HttpGet(url string, timeout time.Duration) HttpResponse {
 	return NewHttpResponse(err, resp.StatusCode, resp.Status, body)
 }
 
-func HttpPostJson(url string, gson string, timeout int) HttpResponse {
+func HttpPostJson(url string, gson string, timeout int, multiplex bool) HttpResponse {
 	header := make(map[string]string)
 	header["Content-Type"] = "application/json; charset=utf-8"
-	return HttpPostJsonWithHeader(url, header, gson, timeout)
+	return HttpPostJsonWithHeader(url, header, gson, timeout, multiplex)
 }
 
-func HttpPostJsonWithHeader(url string, header map[string]string, gson string, timeout int) HttpResponse {
+func HttpPostJsonWithHeader(url string, header map[string]string, gson string, timeout int, multiplex bool) HttpResponse {
 	client := &http.Client{Timeout: time.Duration(timeout) * time.Millisecond}
 
 	//如果是https，跳过ssl验证
@@ -87,7 +87,12 @@ func HttpPostJsonWithHeader(url string, header map[string]string, gson string, t
 	if err != nil {
 		return NewErrorHttpResponse(err)
 	}
-	reqs.Close = true
+
+	if multiplex {
+		reqs.Close = false
+	} else {
+		reqs.Close = true
+	}
 
 	if header != nil {
 		for key, val := range header {
