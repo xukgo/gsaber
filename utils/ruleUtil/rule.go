@@ -12,6 +12,12 @@ import (
 	"time"
 )
 
+//判断是否是网络链接，检查是否是http://或者https://开头
+func CheckIsWebUrl(str string) bool {
+	matched, _ := regexp.MatchString(`^http(s)?://.+`, str)
+	return matched
+}
+
 //判断是否是浮点数字符串,允许+-符号，支持没有小数点的浮点数
 func CheckIsFloat(str string) bool {
 	matched, _ := regexp.MatchString(`^[-+]?[0-9]*\.?[0-9]+$`, str)
