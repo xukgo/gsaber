@@ -1,32 +1,31 @@
 package randomUtil
 
 import (
-	"crypto/rand"
 	"encoding/binary"
+	"github.com/valyala/fastrand"
 	"strconv"
 	"strings"
 )
 
 var charArr1 =  "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-var charArr2 =  "0123456789ABCDEF"
+var charArr2 =  []byte("0123456789ABCDEF")
 
-func randBytes(n int) []byte {
-	b := make([]byte, n)
-	_, err := rand.Read(b)
-	if err != nil {
-		panic(err)
-	}
-	return b
+func rand8Bytes() []byte {
+	var buf = make([]byte, 8)
+	mb := buf[4:]
+	binary.BigEndian.PutUint32(buf, fastrand.Uint32())
+	binary.BigEndian.PutUint32(mb, fastrand.Uint32())
+	return buf
 }
 
+
 func newInt32()int32{
-	bs := randBytes(4)
-	longVal := int32(binary.BigEndian.Uint32(bs))
-	return longVal
+	n := fastrand.Uint32()
+	return int32(n)
 }
 
 func newInt64()int64{
-	bs := randBytes(8)
+	bs := rand8Bytes()
 	longVal := int64(binary.BigEndian.Uint64(bs))
 	return longVal
 }
@@ -54,8 +53,8 @@ func NewInt64(min, max int64)int64{
 }
 
 func NewHexString(count int)string{
-	var bb []byte
-	letters := []byte(charArr2)
+	var bb = make([]byte,count)
+	letters := charArr2
 	runeLen := int32(len(letters))
 	for i := 0; i < count; i++ {
 		ru := letters[NewInt32(0,runeLen)]

@@ -111,3 +111,9 @@ func TestFloatFail(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func Benchmark_intRule(b *testing.B){
+	for i:=0;i<b.N;i++{
+		CheckIsIntRange("100", 0, 65535)
+	}
+}

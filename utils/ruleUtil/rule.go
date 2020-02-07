@@ -38,9 +38,9 @@ func CheckIsNonNegativeInteger(str string) bool {
 
 //是否是在一个范围内的数字
 func CheckIsIntRange(str string, min int, max int) bool {
-	if !CheckIsInteger(str) {
-		return false
-	}
+	//if !CheckIsInteger(str) {
+	//	return false
+	//}
 	val, err := strconv.Atoi(str)
 	if err != nil {
 		return false
