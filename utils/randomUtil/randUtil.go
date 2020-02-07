@@ -58,7 +58,7 @@ func NewHexString(count int)string{
 	runeLen := int32(len(letters))
 	for i := 0; i < count; i++ {
 		ru := letters[NewInt32(0,runeLen)]
-		bb = append(bb, ru)
+		bb[i] = ru
 	}
 	return string(bb)
 }
