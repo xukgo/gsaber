@@ -117,3 +117,39 @@ func Benchmark_intRule(b *testing.B){
 		CheckIsIntRange("100", 0, 65535)
 	}
 }
+
+func TestCheckIsLenPhoneNumber(t *testing.T) {
+	var no string
+	no = "+8615986400521"
+	if !CheckIsLenPhoneNumber(no, 20){
+		t.Fail()
+	}
+	no = "-8615986400521"
+	if CheckIsLenPhoneNumber(no, 20){
+		t.Fail()
+	}
+	no = "8615986400521"
+	if !CheckIsLenPhoneNumber(no, 20){
+		t.Fail()
+	}
+	no = "15986400521"
+	if !CheckIsLenPhoneNumber(no, 20){
+		t.Fail()
+	}
+}
+
+func TestCheckIsCnPhoneNumber(t *testing.T) {
+	var no string
+	no = "+8615986400521"
+	if !CheckIsCnMobilWith86Start(no){
+		t.Fail()
+	}
+	no = "8615986400521"
+	if !CheckIsCnMobilWith86Start(no){
+		t.Fail()
+	}
+	no = "-8615986400521"
+	if CheckIsCnMobilWith86Start(no){
+		t.Fail()
+	}
+}

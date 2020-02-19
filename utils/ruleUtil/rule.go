@@ -71,7 +71,8 @@ func CheckIsLenPhoneNumber(str string, length int) bool {
 		return false
 	}
 
-	matched, _ := regexp.MatchString(`^\d+`, str)
+	matched, _ := regexp.MatchString(`^[+]?[0-9]*$`, str)
+	//matched, _ := regexp.MatchString(`^\d+`, str)
 	return matched
 }
 
@@ -82,7 +83,7 @@ func CheckIsCnMobil(str string) bool {
 }
 
 func CheckIsCnMobilWith86Start(str string) bool {
-	matched, _ := regexp.MatchString(`^861\d{10}$`, str)
+	matched, _ := regexp.MatchString(`^[+]?861\d{10}$`, str)
 	return matched
 }
 
