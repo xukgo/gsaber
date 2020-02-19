@@ -11,7 +11,7 @@ func RemoveMatchString(arr []string, match string, matchCase bool) []string {
 				j++
 			}
 		} else {
-			if strings.ToLower(arr[idx]) != strings.ToLower(match) {
+			if !strings.EqualFold(arr[idx], match) {
 				arr[j] = arr[idx]
 				j++
 			}

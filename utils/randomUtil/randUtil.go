@@ -9,6 +9,7 @@ import (
 
 var charArr1 =  "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 var charArr2 =  []byte("0123456789ABCDEF")
+var charArr3 =  []byte("0123456789abcdef")
 
 func rand8Bytes() []byte {
 	var buf = make([]byte, 8)
@@ -51,18 +52,6 @@ func NewInt64(min, max int64)int64{
 	randVal = randVal%seg
 	return randVal+min
 }
-
-func NewHexString(count int)string{
-	var bb = make([]byte,count)
-	letters := charArr2
-	runeLen := int32(len(letters))
-	for i := 0; i < count; i++ {
-		ru := letters[NewInt32(0,runeLen)]
-		bb[i] = ru
-	}
-	return string(bb)
-}
-
 //新建一个随机手机号，1开头的11位，后面不管
 func NewPhoneNumber()string{
 	var builder strings.Builder
@@ -73,4 +62,26 @@ func NewPhoneNumber()string{
 	}
 
 	return builder.String()
+}
+
+func NewUpperHexString(count int)string{
+	var bb = make([]byte,count)
+	letters := charArr2
+	runeLen := int32(len(letters))
+	for i := 0; i < count; i++ {
+		ru := letters[NewInt32(0,runeLen)]
+		bb[i] = ru
+	}
+	return string(bb)
+}
+
+func NewLowerHexString(count int)string{
+	var bb = make([]byte,count)
+	letters := charArr3
+	runeLen := int32(len(letters))
+	for i := 0; i < count; i++ {
+		ru := letters[NewInt32(0,runeLen)]
+		bb[i] = ru
+	}
+	return string(bb)
 }
