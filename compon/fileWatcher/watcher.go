@@ -55,7 +55,7 @@ func (this *Watcher) RemoveObserver(observer Observer) {
 }
 
 func (this *Watcher) do() {
-	if time.Since(this.lastViewTime).Seconds() < float64(time.Duration(this.interval)*time.Second) {
+	if time.Since(this.lastViewTime).Seconds() < float64(this.interval) {
 		return
 	}
 
