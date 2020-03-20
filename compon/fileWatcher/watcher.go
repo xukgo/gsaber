@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/xukgo/gsaber/utils/fileUtil"
 	"io/ioutil"
+	"log"
 	"os"
 	"sync"
 	"time"
@@ -15,6 +16,7 @@ type Watcher struct {
 	lastWriteTime  int64
 	observerArray  []Observer
 	observerLocker sync.Mutex
+	lastViewTime   time.Time
 }
 
 func NewWatcher(interval int, url string) *Watcher {
@@ -52,22 +54,15 @@ func (this *Watcher) RemoveObserver(observer Observer) {
 	this.observerArray = append(this.observerArray[:index], this.observerArray[index+1:]...)
 }
 
-func (this *Watcher) Start() {
-	fmt.Println("start file watch url:" + this.fileUrl)
-	this.do()
-
-	go func(instance *Watcher) {
-		for {
-			instance.do()
-			time.Sleep(time.Duration(instance.interval) * time.Second)
-		}
-	}(this)
-}
-
 func (this *Watcher) do() {
+	if time.Since(this.lastViewTime).Seconds() < float64(time.Duration(this.interval)*time.Second) {
+		return
+	}
+
+	this.lastViewTime = time.Now()
 	fileInfo, err := os.Stat(this.fileUrl)
 	if err != nil {
-		fmt.Printf("file watcher stat file return error; url:%s, err:%s", this.fileUrl, err.Error())
+		log.Printf("file watcher stat file return error; url:%s, err:%s\r\n", this.fileUrl, err.Error())
 		return
 	}
 
@@ -75,13 +70,13 @@ func (this *Watcher) do() {
 	if modTs != this.lastWriteTime {
 		fileContent, err := ioutil.ReadFile(this.fileUrl)
 		if err != nil {
-			fmt.Printf("file watcher ReadFile return error; url:%s, err:%s", this.fileUrl, err.Error())
+			log.Printf("file watcher ReadFile return error; url:%s, err:%s\r\n", this.fileUrl, err.Error())
 			return
 		}
 
 		this.observerLocker.Lock()
 		if this.observerArray != nil && len(this.observerArray) > 0 {
-			fmt.Printf("file changed notify observers; url:%s", this.fileUrl)
+			fmt.Printf("file changed notify observers; path:%s\r\n", this.fileUrl)
 			for _, observer := range this.observerArray {
 				observer.UpdateFromContent(fileContent)
 			}
