@@ -89,3 +89,13 @@ func GetFileDirUrl(fileName string) string {
 
 	return fileName[:index+1]
 }
+
+//获取文件路径的文件名
+func GetFileName(path string) string {
+	index := strings.LastIndex(path, "/")
+	if index <= 0 {
+		return path
+	}
+
+	return path[index+1:]
+}
