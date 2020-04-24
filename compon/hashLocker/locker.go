@@ -5,16 +5,16 @@ import (
 	"sync"
 )
 
-type HashLocker struct {
+type Locker struct {
 	lockers []sync.Locker
 	size    int
 }
 
-func NewHashLocker() *HashLocker {
-	return NewSizeHashLocker(1024)
+func NewLocker() *Locker {
+	return NewSizeLocker(1024)
 }
-func NewSizeHashLocker(size int) *HashLocker {
-	model := new(HashLocker)
+func NewSizeLocker(size int) *Locker {
+	model := new(Locker)
 	model.size = size
 	model.lockers = make([]sync.Locker, size)
 	for i := 0; i < size; i++ {
@@ -23,17 +23,17 @@ func NewSizeHashLocker(size int) *HashLocker {
 	return model
 }
 
-func (this *HashLocker) Lock(key []byte) {
+func (this *Locker) Lock(key []byte) {
 	lk := this.lockers[this.getKeyIndex(key)]
 	lk.Lock()
 }
 
-func (this *HashLocker) Unlock(key []byte) {
+func (this *Locker) Unlock(key []byte) {
 	lk := this.lockers[this.getKeyIndex(key)]
 	lk.Unlock()
 }
 
-func (this *HashLocker) getKeyIndex(key []byte) int {
+func (this *Locker) getKeyIndex(key []byte) int {
 	sum := murmur3.Sum32(key)
 	return (int(sum)) % this.size
 }

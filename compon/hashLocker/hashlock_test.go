@@ -3,7 +3,7 @@ package hashLocker
 import "testing"
 
 func TestHashLocker(t *testing.T) {
-	hashLockerMap := NewHashLocker()
+	hashLockerMap := NewLocker()
 
 	key := []byte("gjfgkhgfkuehkht87343756396539785643htgeg4454;'[;]")
 
