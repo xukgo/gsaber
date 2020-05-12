@@ -69,6 +69,22 @@ func (this *AocLevelDb) Delete(key []byte) error {
 	return this.dbc.Delete(key, nil)
 }
 
+/*sync bool表示同步操作，false表示异步*/
+func (this *AocLevelDb) BatchDel(sync bool, array [][]byte) error {
+	if array == nil || len(array) == 0 {
+		return nil
+	}
+
+	wo := new(opt.WriteOptions)
+	wo.Sync = sync
+
+	batch := new(leveldb.Batch)
+	for idx, _ := range array {
+		batch.Delete(array[idx])
+	}
+	return this.dbc.Write(batch, wo)
+}
+
 func (this *AocLevelDb) GetDbc() *leveldb.DB {
 	return this.dbc
 }
