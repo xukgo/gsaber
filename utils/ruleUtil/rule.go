@@ -89,7 +89,7 @@ func CheckIsCnMobilWith86Start(str string) bool {
 
 //是否是时间戳，以秒计数
 func CheckIsTimestampSecond(str string) bool {
-	uc, err := strconv.Atoi(str)
+	uc, err := strconv.ParseInt(str,10,64)
 	if err != nil {
 		return false
 	}
@@ -101,7 +101,7 @@ func CheckIsTimestampSecond(str string) bool {
 
 //是否是时间戳，以毫秒计数
 func CheckIsTimestampMillisecond(str string) bool {
-	uc, err := strconv.Atoi(str)
+	uc, err := strconv.ParseInt(str,10,64)
 	if err != nil {
 		return false
 	}
