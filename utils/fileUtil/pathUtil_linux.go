@@ -13,19 +13,20 @@ import (
 获取程序运行路径，不会穿透软连接
 */
 func GetCurrentDirectory() string {
-	var dir string
-	ex, err := os.Executable()
-	if err != nil {
-		fmt.Println(err)
-		return ""
-	}
-
-	dir = filepath.Dir(ex)
-	//dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	//var dir string
+	//ex, err := os.Executable()
 	//if err != nil {
 	//	fmt.Println(err)
 	//	return ""
 	//}
+	//
+	//dir = filepath.Dir(ex)
+
+	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	if err != nil {
+		fmt.Println(err)
+		return ""
+	}
 	return strings.Replace(dir, "\\", "/", -1)
 }
 
