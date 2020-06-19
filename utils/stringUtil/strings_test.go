@@ -12,6 +12,17 @@ import (
 	"testing"
 )
 
+func Test_CompareIgnoreCase(t *testing.T) {
+	if !CompareIgnoreCase("a123abc", "a123abc") {
+		t.FailNow()
+	}
+	if !CompareIgnoreCase("a123abc", "A123AbC") {
+		t.FailNow()
+	}
+	if !CompareIgnoreCase("a123abc", "A1235bC") {
+		t.FailNow()
+	}
+}
 func TestStartWithSuccess(t *testing.T) {
 	if !StartWith("abcdefg", "a") {
 		t.Fail()
@@ -111,14 +122,14 @@ func TestSplitContainsSeps2(t *testing.T) {
 	fmt.Println(actual)
 }
 
-func Benchmark_StartWith1(b *testing.B){
-	for i:=0;i<b.N;i++{
+func Benchmark_StartWith1(b *testing.B) {
+	for i := 0; i < b.N; i++ {
 		StartWith("1234abcdefg", "1234abcdefa")
 	}
 }
 
-func Benchmark_OfficeStartWith1(b *testing.B){
-	for i:=0;i<b.N;i++{
+func Benchmark_OfficeStartWith1(b *testing.B) {
+	for i := 0; i < b.N; i++ {
 		strings.HasPrefix("1234abcdefg", "1234abcdefa")
 	}
 }
