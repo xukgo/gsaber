@@ -30,13 +30,13 @@ func CheckIsLocalhost(ip net.IP) bool {
 
 //理论上的私网地址
 func CheckIsPrivateIP(ip net.IP) bool {
-	if ip[0] == 10 {
+	if ip[12] == 10 {
 		return true
 	}
-	if ip[0] == 172 && ip[1] >= 16 && ip[1] <= 31 {
+	if ip[12] == 172 && ip[13] >= 16 && ip[13] <= 31 {
 		return true
 	}
-	if ip[0] == 192 && ip[1] == 168 {
+	if ip[12] == 192 && ip[13] == 168 {
 		return true
 	}
 	return false
@@ -57,7 +57,15 @@ func checkIpPrefixMatch(ip net.IP, prefixArr []string) bool {
 }
 
 func CheckIsPublicIP(ip net.IP) bool {
-	return ip.IsGlobalUnicast()
+	match := ip.IsGlobalUnicast()
+	if !match {
+		return false
+	}
+	match = CheckIsPrivateIP(ip)
+	if match {
+		return false
+	}
+	return true
 }
 
 func GetIPv4(ipType string, filterPrefixList []string) ([]string, error) {
