@@ -30,13 +30,14 @@ func CheckIsLocalhost(ip net.IP) bool {
 
 //理论上的私网地址
 func CheckIsPrivateIP(ip net.IP) bool {
-	if ip[12] == 10 {
+	blen := len(ip)
+	if ip[blen-4] == 10 {
 		return true
 	}
-	if ip[12] == 172 && ip[13] >= 16 && ip[13] <= 31 {
+	if ip[blen-4] == 172 && ip[blen-3] >= 16 && ip[blen-3] <= 31 {
 		return true
 	}
-	if ip[12] == 192 && ip[13] == 168 {
+	if ip[blen-4] == 192 && ip[blen-3] == 168 {
 		return true
 	}
 	return false
