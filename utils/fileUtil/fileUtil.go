@@ -106,6 +106,8 @@ func GetFileNameNoExt(path string) string {
 	index := strings.LastIndex(path, "/")
 	if index < 0 {
 		fileName = path
+	} else {
+		fileName = path[index+1:]
 	}
 
 	index = strings.LastIndex(fileName, ".")
