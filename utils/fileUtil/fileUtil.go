@@ -93,9 +93,25 @@ func GetFileDirUrl(fileName string) string {
 //获取文件路径的文件名
 func GetFileName(path string) string {
 	index := strings.LastIndex(path, "/")
-	if index <= 0 {
+	if index < 0 {
 		return path
 	}
 
 	return path[index+1:]
+}
+
+//获取文件路径的文件名，不包含后缀
+func GetFileNameNoExt(path string) string {
+	var fileName string
+	index := strings.LastIndex(path, "/")
+	if index < 0 {
+		fileName = path
+	}
+
+	index = strings.LastIndex(fileName, ".")
+	if index < 0 {
+		return fileName
+	} else {
+		return fileName[:index]
+	}
 }
