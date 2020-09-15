@@ -314,6 +314,9 @@ func Decrypt(priv *PrivateKey, in []byte, cipherTextType Sm2CipherTextType) ([]b
 	c1 := make([]byte, c1Len)
 	copy(c1, in[:c1Len])
 	c1x, c1y := elliptic.Unmarshal(priv.Curve, c1)
+	if c1x == nil {
+		return nil, errors.New("sm2: failed to unmarshal elliptic curve point")
+	}
 	sx, sy := priv.Curve.ScalarMult(c1x, c1y, sm2H.Bytes())
 	if util.IsEcPointInfinity(sx, sy) {
 		return nil, errors.New("[h]C1 at infinity")
