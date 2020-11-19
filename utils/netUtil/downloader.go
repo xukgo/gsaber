@@ -23,7 +23,7 @@ func DownloadWebFile(durl string, savePath string, timeout time.Duration) error 
 	fmt.Println("[*] Filename " + filename)
 
 	client := http.DefaultClient
-	if timeout > 0{
+	if timeout > 0 {
 		client.Timeout = timeout //设置超时时间
 	}
 
@@ -40,7 +40,7 @@ func DownloadWebFile(durl string, savePath string, timeout time.Duration) error 
 	raw := resp.Body
 	defer raw.Close()
 
-	reader := bufio.NewReaderSize(raw, 1024 * 32)
+	reader := bufio.NewReaderSize(raw, 1024*32)
 
 	file, err := os.Create(savePath)
 	if err != nil {
@@ -98,15 +98,18 @@ func DownloadWebFile(durl string, savePath string, timeout time.Duration) error 
 			lastWtn = written
 		}
 		if stop {
-			if !ret{
+			if written > 0 {
+				writer.Flush()
+			}
+			if !ret {
 				return err
-			}else{
+			} else {
 				return nil
 			}
 		}
 	}
 
-	return nil
+	//return nil
 }
 
 func bytesToSize(length int) string {
