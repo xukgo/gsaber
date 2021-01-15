@@ -4,6 +4,7 @@ import (
 	"container/list"
 	"fmt"
 	"sync"
+	"time"
 )
 
 // Only items implementing this interface can be enqueued
@@ -51,7 +52,9 @@ func (q *priorityQueue) Enqueue(item SortData) {
 	return
 }
 
-func (q *priorityQueue) PopEqualTopWait(item SortData) SortData {
+func (q *priorityQueue) PopEqualTopWait(item SortData, timeout time.Duration) (SortData, bool) {
+	startAt := time.Now()
+	timeoutNs := timeout.Nanoseconds()
 	q.cond.L.Lock()
 	for {
 		q.locker.Lock()
@@ -63,7 +66,14 @@ func (q *priorityQueue) PopEqualTopWait(item SortData) SortData {
 
 			item = x.Value.(SortData)
 			//fmt.Println("pop done")
-			return item
+			return item, true
+		}
+
+		if timeoutNs > 0 && time.Since(startAt).Nanoseconds() > timeoutNs {
+			q.remove(item)
+			q.locker.Unlock()
+			q.cond.L.Unlock()
+			return nil, false
 		}
 
 		q.locker.Unlock()
@@ -75,6 +85,19 @@ func (q *priorityQueue) PopEqualTopWait(item SortData) SortData {
 func (q *priorityQueue) PopEqualTopRelease() {
 	q.cond.Broadcast()
 	q.cond.L.Unlock()
+}
+
+func (q *priorityQueue) remove(item SortData) {
+	var s *list.Element = nil
+	for p := q.items.Front(); p != nil; p = p.Next() {
+		if p.Value.(SortData).Equal(item) {
+			s = p
+			break
+		}
+	}
+	if s != nil {
+		q.items.Remove(s)
+	}
 }
 
 // Dequeue takes an item from the queue. If queue is empty

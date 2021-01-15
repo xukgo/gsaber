@@ -21,7 +21,7 @@ func TestQueueLocker(t *testing.T) {
 			//time.Sleep(time.Millisecond * time.Duration(20))
 			//startAt := time.Now()
 			priority := int(randomUtil.NewInt32(0, 3))
-			qlocker.LockPriority(priority)
+			qlocker.LockPriority(priority, 0)
 			//fmt.Printf("wait %d ms, index %d\n", time.Since(startAt).Milliseconds(), idx)
 			doQueueLockerAction(idx, priority)
 			qlocker.Unlock()
@@ -45,14 +45,19 @@ func TestQueueLockerLongTime(t *testing.T) {
 	wg := sync.WaitGroup{}
 	qlocker := NewLocker()
 
-	for i := 0; i < 1000; i++ {
+	for i := 0; i < 10000; i++ {
 		wg.Add(1)
 		dur := time.Millisecond //* time.Duration(randomUtil.NewInt32(10, 50))
 		time.AfterFunc(dur, func() {
 			priority := int(randomUtil.NewInt32(0, 3))
-			qlocker.LockPriority(priority)
-			//time.Sleep(time.Millisecond * time.Duration(randomUtil.NewInt32(10, 100)))
-			qlocker.Unlock()
+			br := qlocker.LockPriority(priority, time.Millisecond*20)
+			if !br {
+				//fmt.Println("lock failed")
+			} else {
+				//time.Sleep(time.Millisecond * time.Duration(randomUtil.NewInt32(10, 100)))
+				fmt.Println("lock ok")
+				qlocker.Unlock()
+			}
 			wg.Done()
 		})
 	}

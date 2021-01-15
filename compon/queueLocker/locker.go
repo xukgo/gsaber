@@ -16,11 +16,12 @@ func NewLocker() *Locker {
 	return model
 }
 
-//priority,0优先级最高，数值越大优先级越低
-func (this *Locker) LockPriority(priority int) {
+//priority,0优先级最高，数值越大优先级越低,timeout为0表示一直等下去
+func (this *Locker) LockPriority(priority int, timeout time.Duration) bool {
 	pv := initPValue(priority, time.Now().UnixNano(), randomUtil.NewLowerHexString(6))
 	this.pq.Enqueue(&pv)
-	this.pq.PopEqualTopWait(&pv)
+	_, br := this.pq.PopEqualTopWait(&pv, timeout)
+	return br
 }
 
 func (this *Locker) Unlock() {
