@@ -23,6 +23,16 @@ func NewSizeLocker(size int) *Locker {
 	return model
 }
 
+func (this *Locker) LockIndex(index int){
+	lk := this.lockers[index]
+	lk.Lock()
+}
+
+func (this *Locker) UnlockIndex(index int){
+	lk := this.lockers[index]
+	lk.Unlock()
+}
+
 func (this *Locker) Lock(key []byte) int{
 	index := this.GetKeyIndex(key)
 	lk := this.lockers[index]
