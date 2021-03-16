@@ -24,16 +24,21 @@ func NewSizeLocker(size int) *Locker {
 }
 
 func (this *Locker) Lock(key []byte) {
-	lk := this.lockers[this.getKeyIndex(key)]
+	lk := this.lockers[this.GetKeyIndex(key)]
 	lk.Lock()
 }
 
 func (this *Locker) Unlock(key []byte) {
-	lk := this.lockers[this.getKeyIndex(key)]
+	lk := this.lockers[this.GetKeyIndex(key)]
 	lk.Unlock()
 }
 
-func (this *Locker) getKeyIndex(key []byte) int {
+func (this *Locker) GetKeyIndex(key []byte) int {
 	sum := murmur3.Sum32(key)
 	return (int(sum)) % this.size
+}
+
+func (this *Locker) GetKeyHash(key []byte) uint32 {
+	sum := murmur3.Sum32(key)
+	return sum
 }
