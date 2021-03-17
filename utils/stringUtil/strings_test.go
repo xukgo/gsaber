@@ -12,6 +12,21 @@ import (
 	"testing"
 )
 
+func Test_nocopyConvertBytesString(t *testing.T) {
+	str := "0123456789abcdefg"
+	bs := NoCopyString2Bytes(str)
+	if len(bs) != len(str){
+		t.FailNow()
+	}
+	str1 := NoCopyBytes2String(bs)
+	if str != str1{
+		t.FailNow()
+	}
+	bs1 := NoCopyString2Bytes(str1)
+	if len(bs1) != len(str){
+		t.FailNow()
+	}
+}
 func Test_CompareIgnoreCase(t *testing.T) {
 	if !CompareIgnoreCase("a123abc", "a123abc") {
 		t.FailNow()
@@ -19,7 +34,7 @@ func Test_CompareIgnoreCase(t *testing.T) {
 	if !CompareIgnoreCase("a123abc", "A123AbC") {
 		t.FailNow()
 	}
-	if !CompareIgnoreCase("a123abc", "A1235bC") {
+	if CompareIgnoreCase("a123abc", "A1235bC") {
 		t.FailNow()
 	}
 }
