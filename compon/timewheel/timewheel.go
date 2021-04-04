@@ -2,11 +2,16 @@ package timewheel
 
 import (
 	"container/list"
+	"fmt"
+	"math"
 	"time"
 )
 
+const const_ADD_OPERATION = 1
+const const_REMOVE_OPERATION = 2
+
 // Job 延时任务回调函数
-type Job func(interface{})
+type Job func(interface{},interface{})
 
 // TaskData 回调函数参数类型
 
@@ -17,20 +22,32 @@ type TimeWheel struct {
 	slots    []*list.List // 时间轮槽
 	// key: 定时器唯一标识 value: 定时器所在的槽, 主要用于删除定时器, 不会出现并发读写，不加锁直接访问
 	timer             map[interface{}]int
+	lastFinishTickerTime time.Time
+
 	currentPos        int              // 当前指针指向哪一个槽
 	slotNum           int              // 槽数量
 	job               Job              // 定时器回调函数
-	addTaskChannel    chan Task        // 新增任务channel
-	removeTaskChannel chan interface{} // 删除任务channel
+	//addTaskChannel    chan Task        // 新增任务channel
+	//removeTaskChannel chan interface{} // 删除任务channel
+	changeTaskChannel chan taskOperation //新增删除任务channel
 	stopChannel       chan bool        // 停止定时器channel
+}
+
+type taskOperation struct {
+	opType int
+	key interface{}
+	task Task
 }
 
 // Task 延时任务
 type Task struct {
+	addTime time.Time
 	delay  time.Duration // 延迟时间
 	circle int           // 时间轮需要转动几圈
 	key    interface{}   // 定时器唯一标识, 用于删除定时器
 	data   interface{}   // 回调函数参数
+	goAction bool
+	iScron bool
 }
 
 // New 创建时间轮
@@ -45,8 +62,9 @@ func New(interval time.Duration, slotNum int, job Job) *TimeWheel {
 		currentPos:        0,
 		job:               job,
 		slotNum:           slotNum,
-		addTaskChannel:    make(chan Task),
-		removeTaskChannel: make(chan interface{}),
+		//addTaskChannel:    make(chan Task),
+		//removeTaskChannel: make(chan interface{}),
+		changeTaskChannel:    make(chan taskOperation,100),
 		stopChannel:       make(chan bool),
 	}
 
@@ -73,31 +91,67 @@ func (tw *TimeWheel) Stop() {
 	tw.stopChannel <- true
 }
 
-// AddTimer 添加定时器 key为定时器唯一标识
-func (tw *TimeWheel) AddTimer(delay time.Duration, key interface{}, data interface{}) {
+// Add 添加定时器 key为定时器唯一标识
+func (tw *TimeWheel) Add(delay time.Duration, key interface{}, data interface{}, goAction bool) {
 	if delay < 0 {
 		return
 	}
-	tw.addTaskChannel <- Task{delay: delay, key: key, data: data}
+	//tw.addTaskChannel <- Task{delay: delay, key: key, data: data}
+	task := Task{delay: delay, key: key, data: data,goAction: goAction,iScron: false}
+	task.addTime = time.Now()
+	tw.changeTaskChannel<-taskOperation{
+		opType: const_ADD_OPERATION,
+		key:    key,
+		task:   task,
+	}
 }
 
-// RemoveTimer 删除定时器 key为添加定时器时传递的定时器唯一标识
-func (tw *TimeWheel) RemoveTimer(key interface{}) {
+// Add 添加定时器 key为定时器唯一标识
+func (tw *TimeWheel) AddCron(delay time.Duration, key interface{}, data interface{}, goAction bool) {
+	if delay <= 0 {
+		return
+	}
+	//tw.addTaskChannel <- Task{delay: delay, key: key, data: data}
+	task := Task{delay: delay, key: key, data: data,goAction: goAction,iScron: true}
+	task.addTime = time.Now()
+	tw.changeTaskChannel<-taskOperation{
+		opType: const_ADD_OPERATION,
+		key:    key,
+		task:   task,
+	}
+}
+
+// Remove 删除定时器 key为添加定时器时传递的定时器唯一标识
+func (tw *TimeWheel) Remove(key interface{}) {
 	if key == nil {
 		return
 	}
-	tw.removeTaskChannel <- key
+	//tw.removeTaskChannel <- key
+	tw.changeTaskChannel<-taskOperation{
+		opType: const_REMOVE_OPERATION,
+		key:    key,
+	}
 }
 
+//var count uint64 = 0
 func (tw *TimeWheel) start() {
 	for {
 		select {
 		case <-tw.ticker.C:
 			tw.tickHandler()
-		case task := <-tw.addTaskChannel:
-			tw.addTask(&task)
-		case key := <-tw.removeTaskChannel:
-			tw.removeTask(key)
+			//fmt.Printf("ticker locate %d\n",atomic.LoadUint64(&count))
+			//atomic.AddUint64(&count,1)
+		case op := <-tw.changeTaskChannel:
+			if op.opType == const_ADD_OPERATION {
+				//fmt.Printf("addTask locate %d\n",atomic.LoadUint64(&count))
+				tw.addTask(&op.task)
+			}else if op.opType == const_REMOVE_OPERATION {
+				//fmt.Printf("removeTask locate %d\n",atomic.LoadUint64(&count))
+				tw.removeTask(op.key)
+			}
+			//tw.addTask(&task)
+		//case key := <-tw.removeTaskChannel:
+		//	tw.removeTask(key)
 		case <-tw.stopChannel:
 			tw.ticker.Stop()
 			return
@@ -107,12 +161,14 @@ func (tw *TimeWheel) start() {
 
 func (tw *TimeWheel) tickHandler() {
 	l := tw.slots[tw.currentPos]
+	//fmt.Printf("pos %d\n",tw.currentPos)
 	tw.scanAndRunTask(l)
 	if tw.currentPos == tw.slotNum-1 {
 		tw.currentPos = 0
 	} else {
 		tw.currentPos++
 	}
+	tw.lastFinishTickerTime = time.Now()
 }
 
 // 扫描链表中过期定时器, 并执行回调函数
@@ -125,7 +181,17 @@ func (tw *TimeWheel) scanAndRunTask(l *list.List) {
 			continue
 		}
 
-		go tw.job(task.data)
+		//fmt.Printf("task locate %d %v\n",atomic.LoadUint64(&count),task.key)
+		if task.goAction{
+			go tw.job(task.key, task.data)
+		}else{
+			 tw.job(task.key, task.data)
+		}
+
+		if task.iScron{
+			tw.AddCron(task.delay,task.key,task.data,task.goAction)
+		}
+
 		next := e.Next()
 		l.Remove(e)
 		if task.key != nil {
@@ -137,7 +203,16 @@ func (tw *TimeWheel) scanAndRunTask(l *list.List) {
 
 // 新增任务到链表中
 func (tw *TimeWheel) addTask(task *Task) {
-	pos, circle := tw.getPositionAndCircle(task.delay)
+	var pos,circle int
+	if task.addTime.Sub(tw.lastFinishTickerTime) <= 0 {
+		delay := task.delay-tw.interval
+		if delay < 0{
+			delay = 0
+		}
+		pos, circle = getPositionAndCircle(delay,tw.interval,tw.slotNum,tw.currentPos)
+	}else{
+		pos, circle = getPositionAndCircle(task.delay,tw.interval,tw.slotNum,tw.currentPos)
+	}
 	task.circle = circle
 
 	tw.slots[pos].PushBack(task)
@@ -145,15 +220,18 @@ func (tw *TimeWheel) addTask(task *Task) {
 	if task.key != nil {
 		tw.timer[task.key] = pos
 	}
+	//fmt.Printf("%s addTask %v %v %v %v %v\n",formatTime(task.addTime), task.delay, task.circle, pos, task.key,task.data)
 }
 
 // 获取定时器在槽中的位置, 时间轮需要转动的圈数
-func (tw *TimeWheel) getPositionAndCircle(d time.Duration) (pos int, circle int) {
-	delaySeconds := int(d.Seconds())
-	intervalSeconds := int(tw.interval.Seconds())
-	circle = int(delaySeconds / intervalSeconds / tw.slotNum)
-	pos = int(tw.currentPos+delaySeconds/intervalSeconds) % tw.slotNum
-
+func getPositionAndCircle(d time.Duration, inteval time.Duration,
+	slotNum int, currentPos int) (pos int, circle int) {
+	skip := int(math.Round(float64(d ) / float64(inteval)))
+	pos = (currentPos+skip) % slotNum
+	circle = (currentPos+skip) /  slotNum
+	if pos < currentPos{
+		circle--
+	}
 	return
 }
 
@@ -171,10 +249,15 @@ func (tw *TimeWheel) removeTask(key interface{}) {
 		if task.key == key {
 			delete(tw.timer, task.key)
 			l.Remove(e)
+			fmt.Printf("%s removeTask %v\n",formatTime(time.Now()), key)
 		}
 
 		e = e.Next()
 	}
+}
+
+func formatTime(t time.Time)string{
+	return t.Format("2006-01-02 15:04:05.999999")
 }
 
 /*
@@ -194,10 +277,10 @@ func main()  {
     // 第一个参数为延迟时间
     // 第二个参数为定时器唯一标识, 删除定时器需传递此参数
     // 第三个参数为用户自定义数据, 此参数将会传递给回调函数, 类型为interface{}
-    tw.AddTimer(5 * time.Second, conn, map[string]int{"uid" : 105626})
+    tw.Add(5 * time.Second, conn, map[string]int{"uid" : 105626})
 
     // 删除定时器, 参数为添加定时器传递的唯一标识
-    tw.RemoveTimer(conn)
+    tw.Remove(conn)
 
     // 停止时间轮
     tw.Stop()
