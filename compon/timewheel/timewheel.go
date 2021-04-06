@@ -46,11 +46,12 @@ type Task struct {
 	circle  int           // 时间轮需要转动几圈
 	key     interface{}   // 定时器唯一标识, 用于删除定时器
 	data    interface{}   // 回调函数参数
+	job     Job
 	iScron  bool
 }
 
 // New 创建时间轮
-func New(interval time.Duration, slotNum int, job Job) *TimeWheel {
+func New(interval time.Duration, slotNum int, taskCap int, job Job) *TimeWheel {
 	if interval <= 0 || slotNum <= 0 || job == nil {
 		return nil
 	}
@@ -63,7 +64,7 @@ func New(interval time.Duration, slotNum int, job Job) *TimeWheel {
 		slotNum:    slotNum,
 		//addTaskChannel:    make(chan Task),
 		//removeTaskChannel: make(chan interface{}),
-		changeTaskChannel: make(chan taskOperation, 100),
+		changeTaskChannel: make(chan taskOperation, taskCap),
 		stopChannel:       make(chan bool),
 	}
 
@@ -92,11 +93,16 @@ func (tw *TimeWheel) Stop() {
 
 // Add 添加定时器 key为定时器唯一标识
 func (tw *TimeWheel) Add(delay time.Duration, key interface{}, data interface{}) {
+	tw.AddFunc(delay, key, data, nil)
+}
+
+// Add 添加定时器 key为定时器唯一标识
+func (tw *TimeWheel) AddFunc(delay time.Duration, key interface{}, data interface{}, job Job) {
 	if delay < 0 {
 		return
 	}
 	//tw.addTaskChannel <- Task{delay: delay, key: key, data: data}
-	task := Task{delay: delay, key: key, data: data, iScron: false}
+	task := Task{delay: delay, key: key, data: data, job: job, iScron: false}
 	task.addTime = time.Now()
 	tw.changeTaskChannel <- taskOperation{
 		opType: const_ADD_OPERATION,
@@ -107,11 +113,16 @@ func (tw *TimeWheel) Add(delay time.Duration, key interface{}, data interface{})
 
 // Add 添加定时器 key为定时器唯一标识
 func (tw *TimeWheel) AddCron(delay time.Duration, key interface{}, data interface{}) {
+	tw.AddCronFunc(delay, key, data, nil)
+}
+
+// Add 添加定时器 key为定时器唯一标识
+func (tw *TimeWheel) AddCronFunc(delay time.Duration, key interface{}, data interface{}, job Job) {
 	if delay <= 0 {
 		return
 	}
 	//tw.addTaskChannel <- Task{delay: delay, key: key, data: data}
-	task := Task{delay: delay, key: key, data: data, iScron: true}
+	task := Task{delay: delay, key: key, data: data, job: job, iScron: true}
 	task.addTime = time.Now()
 	tw.changeTaskChannel <- taskOperation{
 		opType: const_ADD_OPERATION,
@@ -125,7 +136,6 @@ func (tw *TimeWheel) Remove(key interface{}) {
 	if key == nil {
 		return
 	}
-	//tw.removeTaskChannel <- key
 	tw.changeTaskChannel <- taskOperation{
 		opType: const_REMOVE_OPERATION,
 		key:    key,
@@ -182,10 +192,14 @@ func (tw *TimeWheel) scanAndRunTask(l *list.List) {
 
 		//fmt.Printf("task locate %d %v\n",atomic.LoadUint64(&count),task.key)
 
-		tw.job(task.key, task.data)
+		if task.job != nil {
+			task.job(task.key, task.data)
+		} else if tw.job != nil {
+			tw.job(task.key, task.data)
+		}
 
 		if task.iScron {
-			tw.AddCron(task.delay, task.key, task.data)
+			tw.AddCronFunc(task.delay, task.key, task.data, task.job)
 		}
 
 		next := e.Next()

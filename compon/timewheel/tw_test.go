@@ -8,10 +8,14 @@ import (
 )
 
 func Test_timewheel(t *testing.T) {
+	job := func(key interface{}, data interface{}) {
+		fmt.Printf("%s rootJob action %v\n", formatTime(time.Now()), data)
+	}
+	tjob := func(key interface{}, data interface{}) {
+		fmt.Printf("%s taskJob action %v\n", formatTime(time.Now()), data)
+	}
 	interval := time.Millisecond * 100
-	tw := New(interval, 6, func(key interface{}, data interface{}) {
-		fmt.Printf("%s action %v\n", formatTime(time.Now()), data)
-	})
+	tw := New(interval, 6, 100, job)
 	time.Sleep(time.Second * 1)
 	tw.Start()
 	//tw.Add(time.Millisecond*100,"k1","d1",false)
@@ -19,6 +23,7 @@ func Test_timewheel(t *testing.T) {
 	//tw.Add(time.Millisecond*200,"k1","d2",false)
 	//tw.Remove("k1")
 	tw.AddCron(interval*2, "k1", "d3")
+	tw.AddCronFunc(interval*3, "k2", "d2", tjob)
 	//time.Sleep(time.Second*1)
 	//tw.Remove("k1")
 	time.Sleep(time.Second * 10)
