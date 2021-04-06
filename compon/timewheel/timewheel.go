@@ -52,7 +52,7 @@ type Task struct {
 
 // New 创建时间轮
 func New(interval time.Duration, slotNum int, taskCap int, job Job) *TimeWheel {
-	if interval <= 0 || slotNum <= 0 || job == nil {
+	if interval <= 0 || slotNum <= 0 || taskCap < 0 {
 		return nil
 	}
 	tw := &TimeWheel{
