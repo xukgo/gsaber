@@ -11,7 +11,7 @@ const const_ADD_OPERATION = 1
 const const_REMOVE_OPERATION = 2
 
 // Job 延时任务回调函数
-type Job func(interface{},interface{})
+type Job func(interface{}, interface{})
 
 // TaskData 回调函数参数类型
 
@@ -21,33 +21,32 @@ type TimeWheel struct {
 	ticker   *time.Ticker
 	slots    []*list.List // 时间轮槽
 	// key: 定时器唯一标识 value: 定时器所在的槽, 主要用于删除定时器, 不会出现并发读写，不加锁直接访问
-	timer             map[interface{}]int
+	timer                map[interface{}]int
 	lastFinishTickerTime time.Time
 
-	currentPos        int              // 当前指针指向哪一个槽
-	slotNum           int              // 槽数量
-	job               Job              // 定时器回调函数
+	currentPos int // 当前指针指向哪一个槽
+	slotNum    int // 槽数量
+	job        Job // 定时器回调函数
 	//addTaskChannel    chan Task        // 新增任务channel
 	//removeTaskChannel chan interface{} // 删除任务channel
 	changeTaskChannel chan taskOperation //新增删除任务channel
-	stopChannel       chan bool        // 停止定时器channel
+	stopChannel       chan bool          // 停止定时器channel
 }
 
 type taskOperation struct {
 	opType int
-	key interface{}
-	task Task
+	key    interface{}
+	task   Task
 }
 
 // Task 延时任务
 type Task struct {
 	addTime time.Time
-	delay  time.Duration // 延迟时间
-	circle int           // 时间轮需要转动几圈
-	key    interface{}   // 定时器唯一标识, 用于删除定时器
-	data   interface{}   // 回调函数参数
-	goAction bool
-	iScron bool
+	delay   time.Duration // 延迟时间
+	circle  int           // 时间轮需要转动几圈
+	key     interface{}   // 定时器唯一标识, 用于删除定时器
+	data    interface{}   // 回调函数参数
+	iScron  bool
 }
 
 // New 创建时间轮
@@ -56,15 +55,15 @@ func New(interval time.Duration, slotNum int, job Job) *TimeWheel {
 		return nil
 	}
 	tw := &TimeWheel{
-		interval:          interval,
-		slots:             make([]*list.List, slotNum),
-		timer:             make(map[interface{}]int),
-		currentPos:        0,
-		job:               job,
-		slotNum:           slotNum,
+		interval:   interval,
+		slots:      make([]*list.List, slotNum),
+		timer:      make(map[interface{}]int),
+		currentPos: 0,
+		job:        job,
+		slotNum:    slotNum,
 		//addTaskChannel:    make(chan Task),
 		//removeTaskChannel: make(chan interface{}),
-		changeTaskChannel:    make(chan taskOperation,100),
+		changeTaskChannel: make(chan taskOperation, 100),
 		stopChannel:       make(chan bool),
 	}
 
@@ -92,14 +91,14 @@ func (tw *TimeWheel) Stop() {
 }
 
 // Add 添加定时器 key为定时器唯一标识
-func (tw *TimeWheel) Add(delay time.Duration, key interface{}, data interface{}, goAction bool) {
+func (tw *TimeWheel) Add(delay time.Duration, key interface{}, data interface{}) {
 	if delay < 0 {
 		return
 	}
 	//tw.addTaskChannel <- Task{delay: delay, key: key, data: data}
-	task := Task{delay: delay, key: key, data: data,goAction: goAction,iScron: false}
+	task := Task{delay: delay, key: key, data: data, iScron: false}
 	task.addTime = time.Now()
-	tw.changeTaskChannel<-taskOperation{
+	tw.changeTaskChannel <- taskOperation{
 		opType: const_ADD_OPERATION,
 		key:    key,
 		task:   task,
@@ -107,14 +106,14 @@ func (tw *TimeWheel) Add(delay time.Duration, key interface{}, data interface{},
 }
 
 // Add 添加定时器 key为定时器唯一标识
-func (tw *TimeWheel) AddCron(delay time.Duration, key interface{}, data interface{}, goAction bool) {
+func (tw *TimeWheel) AddCron(delay time.Duration, key interface{}, data interface{}) {
 	if delay <= 0 {
 		return
 	}
 	//tw.addTaskChannel <- Task{delay: delay, key: key, data: data}
-	task := Task{delay: delay, key: key, data: data,goAction: goAction,iScron: true}
+	task := Task{delay: delay, key: key, data: data, iScron: true}
 	task.addTime = time.Now()
-	tw.changeTaskChannel<-taskOperation{
+	tw.changeTaskChannel <- taskOperation{
 		opType: const_ADD_OPERATION,
 		key:    key,
 		task:   task,
@@ -127,7 +126,7 @@ func (tw *TimeWheel) Remove(key interface{}) {
 		return
 	}
 	//tw.removeTaskChannel <- key
-	tw.changeTaskChannel<-taskOperation{
+	tw.changeTaskChannel <- taskOperation{
 		opType: const_REMOVE_OPERATION,
 		key:    key,
 	}
@@ -145,7 +144,7 @@ func (tw *TimeWheel) start() {
 			if op.opType == const_ADD_OPERATION {
 				//fmt.Printf("addTask locate %d\n",atomic.LoadUint64(&count))
 				tw.addTask(&op.task)
-			}else if op.opType == const_REMOVE_OPERATION {
+			} else if op.opType == const_REMOVE_OPERATION {
 				//fmt.Printf("removeTask locate %d\n",atomic.LoadUint64(&count))
 				tw.removeTask(op.key)
 			}
@@ -182,14 +181,11 @@ func (tw *TimeWheel) scanAndRunTask(l *list.List) {
 		}
 
 		//fmt.Printf("task locate %d %v\n",atomic.LoadUint64(&count),task.key)
-		if task.goAction{
-			go tw.job(task.key, task.data)
-		}else{
-			 tw.job(task.key, task.data)
-		}
 
-		if task.iScron{
-			tw.AddCron(task.delay,task.key,task.data,task.goAction)
+		tw.job(task.key, task.data)
+
+		if task.iScron {
+			tw.AddCron(task.delay, task.key, task.data)
 		}
 
 		next := e.Next()
@@ -203,15 +199,15 @@ func (tw *TimeWheel) scanAndRunTask(l *list.List) {
 
 // 新增任务到链表中
 func (tw *TimeWheel) addTask(task *Task) {
-	var pos,circle int
+	var pos, circle int
 	if task.addTime.Sub(tw.lastFinishTickerTime) <= 0 {
-		delay := task.delay-tw.interval
-		if delay < 0{
+		delay := task.delay - tw.interval
+		if delay < 0 {
 			delay = 0
 		}
-		pos, circle = getPositionAndCircle(delay,tw.interval,tw.slotNum,tw.currentPos)
-	}else{
-		pos, circle = getPositionAndCircle(task.delay,tw.interval,tw.slotNum,tw.currentPos)
+		pos, circle = getPositionAndCircle(delay, tw.interval, tw.slotNum, tw.currentPos)
+	} else {
+		pos, circle = getPositionAndCircle(task.delay, tw.interval, tw.slotNum, tw.currentPos)
 	}
 	task.circle = circle
 
@@ -226,10 +222,10 @@ func (tw *TimeWheel) addTask(task *Task) {
 // 获取定时器在槽中的位置, 时间轮需要转动的圈数
 func getPositionAndCircle(d time.Duration, inteval time.Duration,
 	slotNum int, currentPos int) (pos int, circle int) {
-	skip := int(math.Round(float64(d ) / float64(inteval)))
-	pos = (currentPos+skip) % slotNum
-	circle = (currentPos+skip) /  slotNum
-	if pos < currentPos{
+	skip := int(math.Round(float64(d) / float64(inteval)))
+	pos = (currentPos + skip) % slotNum
+	circle = (currentPos + skip) / slotNum
+	if pos < currentPos {
 		circle--
 	}
 	return
@@ -249,14 +245,14 @@ func (tw *TimeWheel) removeTask(key interface{}) {
 		if task.key == key {
 			delete(tw.timer, task.key)
 			l.Remove(e)
-			fmt.Printf("%s removeTask %v\n",formatTime(time.Now()), key)
+			fmt.Printf("%s removeTask %v\n", formatTime(time.Now()), key)
 		}
 
 		e = e.Next()
 	}
 }
 
-func formatTime(t time.Time)string{
+func formatTime(t time.Time) string {
 	return t.Format("2006-01-02 15:04:05.999999")
 }
 
