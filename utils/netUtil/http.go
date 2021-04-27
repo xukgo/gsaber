@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"crypto/tls"
 	"io"
-	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -48,7 +47,7 @@ func HttpGet(url string, timeout time.Duration) HttpResponse {
 		return NewErrorHttpResponse(err)
 	}
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		_ = resp.Body.Close()
 		return NewErrorHttpResponse(err)
@@ -105,7 +104,7 @@ func HttpPostJsonWithHeader(url string, header map[string]string, gson string, t
 		return NewErrorHttpResponse(err)
 	}
 
-	resBuff, err := ioutil.ReadAll(resp.Body)
+	resBuff, err := io.ReadAll(resp.Body)
 	_ = resp.Body.Close()
 	return NewHttpResponse(err, resp.StatusCode, resp.Status, resBuff)
 }
@@ -156,7 +155,7 @@ func HttpPostFileAndDataWithHeader(url string, header map[string]string, fieldDi
 		return NewErrorHttpResponse(err)
 	}
 
-	resBuff, err := ioutil.ReadAll(resp.Body)
+	resBuff, err := io.ReadAll(resp.Body)
 	_ = resp.Body.Close()
 	return NewHttpResponse(err, resp.StatusCode, resp.Status, resBuff)
 }

@@ -2,7 +2,6 @@ package fileUtil
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 )
@@ -61,7 +60,7 @@ func SaveFile(path, content string) error {
 
 func ReadFile(path string) (string, error) {
 	if IsFile(path) {
-		d, err := ioutil.ReadFile(path)
+		d, err := os.ReadFile(path)
 		if err != nil {
 			return "", err
 		}

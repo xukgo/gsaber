@@ -120,7 +120,7 @@ func TestCipherDerEncode_C1C2C3(t *testing.T) {
 		t.Error(err.Error())
 		return
 	}
-	//err = ioutil.WriteFile("derCipher.dat", derCipher, 0644)
+	//err = os.WriteFile("derCipher.dat", derCipher, 0644)
 	//if err != nil {
 	//	t.Error(err.Error())
 	//	return
@@ -165,7 +165,7 @@ func TestCipherDerEncode_C1C3C2(t *testing.T) {
 		t.Error(err.Error())
 		return
 	}
-	//err = ioutil.WriteFile("derCipher.dat", derCipher, 0644)
+	//err = os.WriteFile("derCipher.dat", derCipher, 0644)
 	//if err != nil {
 	//	t.Error(err.Error())
 	//	return

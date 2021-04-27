@@ -2,7 +2,6 @@ package envUtil
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 )
@@ -15,7 +14,7 @@ func CheckIsContainerEnv() (bool, error) {
 	}
 
 	filePath := "/proc/1/cgroup"
-	contents, err := ioutil.ReadFile(filePath)
+	contents, err := os.ReadFile(filePath)
 	if err != nil {
 		return false, fmt.Errorf("环境未能定位cgroup")
 	}

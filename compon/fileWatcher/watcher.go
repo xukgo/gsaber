@@ -3,7 +3,6 @@ package fileWatcher
 import (
 	"fmt"
 	"github.com/xukgo/gsaber/utils/fileUtil"
-	"io/ioutil"
 	"log"
 	"os"
 	"sync"
@@ -68,7 +67,7 @@ func (this *Watcher) do() {
 
 	modTs := fileInfo.ModTime().Unix()
 	if modTs != this.lastWriteTime {
-		fileContent, err := ioutil.ReadFile(this.fileUrl)
+		fileContent, err := os.ReadFile(this.fileUrl)
 		if err != nil {
 			log.Printf("file watcher ReadFile return error; url:%s, err:%s\r\n", this.fileUrl, err.Error())
 			return

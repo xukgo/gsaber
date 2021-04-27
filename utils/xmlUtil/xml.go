@@ -5,13 +5,13 @@ import (
 	"bytes"
 	"encoding/xml"
 	"io"
-	"io/ioutil"
+	"os"
 	"regexp"
 	"unicode/utf8"
 )
 
 func ReadCleanXml(path string) ([]byte, error) {
-	content, err := ioutil.ReadFile(path)
+	content, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
