@@ -9,8 +9,9 @@ github.com/ericlagergren/decimal v0.0.0-20210307182354-5f8425a47c58 h1:+Ct3Fisij
 github.com/ericlagergren/decimal v0.0.0-20210307182354-5f8425a47c58/go.mod h1:ZWP59etEywfyMG2lAqnoi3t8uoiZCiTmLtwt6iESIsQ=
 github.com/fsnotify/fsnotify v1.4.7/go.mod h1:jwhsz4b93w/PPRr/qN1Yymfu8t87LnFCMoQvtojpjFo=
 github.com/golang/protobuf v1.2.0/go.mod h1:6lQm79b+lXiMfvg/cZm0SGofjICqVBUtrP5yJMmIC1U=
-github.com/golang/snappy v0.0.1 h1:Qgr9rKW7uDUkrbSmQeiDsGa8SjGyCOGtuasMWwvp2P4=
 github.com/golang/snappy v0.0.1/go.mod h1:/XxbfmMg8lxefKM7IXC3fBNl/7bRcc72aCRzEWrmP2Q=
+github.com/golang/snappy v0.0.3 h1:fHPg5GQYlCeLIPB9BZqMVR5nR9A+IM5zcgeTdjMYmLA=
+github.com/golang/snappy v0.0.3/go.mod h1:/XxbfmMg8lxefKM7IXC3fBNl/7bRcc72aCRzEWrmP2Q=
 github.com/google/gofuzz v1.0.0/go.mod h1:dBl0BpW6vV/+mYPU4Po3pmUjxk6FQPldtuIdl/M65Eg=
 github.com/hhh0pE/decimal v0.0.0-20180504212053-f418d51636a9 h1:4Jdn434Y9Z6Juu0etLIoM6n6aupVipCsiJklEdtRmx4=
 github.com/hhh0pE/decimal v0.0.0-20180504212053-f418d51636a9/go.mod h1:xO+cd4f0iLXmvrO7kroPYQFARoYzSsz5CpR6rLsjRUk=
