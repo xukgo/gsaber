@@ -3,6 +3,7 @@ package levelDbUtil
 import (
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/opt"
+	"github.com/syndtr/goleveldb/leveldb/util"
 	"sync"
 )
 
@@ -83,6 +84,10 @@ func (this *AocLevelDb) BatchDel(sync bool, array [][]byte) error {
 		batch.Delete(array[idx])
 	}
 	return this.dbc.Write(batch, wo)
+}
+
+func (this *AocLevelDb) CompactRange(startKey, limit []byte) error {
+	return this.dbc.CompactRange(util.Range{Start: startKey, Limit: limit})
 }
 
 func (this *AocLevelDb) GetDbc() *leveldb.DB {
