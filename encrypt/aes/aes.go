@@ -4,13 +4,11 @@ import (
 	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
-	"encoding/base64"
 )
 
-func AesEncrypt(orig string, key string) string {
+func AesEncrypt(origData []byte, k []byte) []byte {
 	// 转成字节数组
-	origData := []byte(orig)
-	k := []byte(key)
+	//origData := []byte(orig)
 
 	// 分组秘钥
 	block, _ := aes.NewCipher(k)
@@ -25,14 +23,13 @@ func AesEncrypt(orig string, key string) string {
 	// 加密
 	blockMode.CryptBlocks(cryted, origData)
 
-	return base64.StdEncoding.EncodeToString(cryted)
-
+	return cryted
+	//return base64.StdEncoding.EncodeToString(cryted)
 }
 
-func AesDecrypt(cryted string, key string) string {
+func AesDecrypt(crytedByte []byte, k []byte) []byte {
 	// 转成字节数组
-	crytedByte, _ := base64.StdEncoding.DecodeString(cryted)
-	k := []byte(key)
+	//crytedByte, _ := base64.StdEncoding.DecodeString(cryted)
 
 	// 分组秘钥
 	block, _ := aes.NewCipher(k)
@@ -46,7 +43,8 @@ func AesDecrypt(cryted string, key string) string {
 	blockMode.CryptBlocks(orig, crytedByte)
 	// 去补全码
 	orig = PKCS7UnPadding(orig)
-	return string(orig)
+	return orig
+	//return string(orig)
 }
 
 //补码

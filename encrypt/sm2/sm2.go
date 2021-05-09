@@ -263,6 +263,7 @@ func notEncrypted(encData []byte, in []byte) bool {
 	return true
 }
 
+//加密不可用同一个pub并发
 func Encrypt(pub *PublicKey, in []byte, cipherTextType Sm2CipherTextType) ([]byte, error) {
 	c2 := make([]byte, len(in))
 	copy(c2, in)
@@ -309,6 +310,7 @@ func Encrypt(pub *PublicKey, in []byte, cipherTextType Sm2CipherTextType) ([]byt
 	return result, nil
 }
 
+//解密可以用同一个priv并发
 func Decrypt(priv *PrivateKey, in []byte, cipherTextType Sm2CipherTextType) ([]byte, error) {
 	c1Len := ((priv.Curve.BitSize+7)/8)*2 + 1
 	c1 := make([]byte, c1Len)

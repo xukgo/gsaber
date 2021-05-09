@@ -9,6 +9,18 @@ import (
 	"testing"
 )
 
+
+// priv construct
+//priv := new(sm2.PrivateKey)
+//priv.Curve = sm2.GetSm2P256V1()
+//priv.D, _ = new(big.Int).SetString(SERVER_PRIV, 16)
+
+// pub construct
+//pub := new(sm2.PublicKey)
+//pub.Curve = sm2.GetSm2P256V1()
+//pub.X, _ = new(big.Int).SetString(pubx, 16)
+//pub.Y, _ = new(big.Int).SetString(puby, 16)
+
 func TestGetSm2P256V1(t *testing.T) {
 	curve := GetSm2P256V1()
 	fmt.Printf("P:%s\n", curve.Params().P.Text(16))
