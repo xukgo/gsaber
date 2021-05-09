@@ -11,7 +11,7 @@ import (
 //const iv = "c3d0fd39"
 
 
-func DesEncrypt(origData, key, iv []byte) ([]byte, error) {
+func Encrypt(origData, key, iv []byte) ([]byte, error) {
 	block, err := des.NewCipher(key)
 	if err != nil {
 		return nil, err
@@ -24,7 +24,7 @@ func DesEncrypt(origData, key, iv []byte) ([]byte, error) {
 	//return base64.StdEncoding.EncodeToString(crypted), nil
 }
 
-func DesDecrypt(crypted, key, iv []byte) ([]byte, error) {
+func Decrypt(crypted, key, iv []byte) ([]byte, error) {
 	//crypted, err := base64.StdEncoding.DecodeString(cryptedStr)
 	//if err != nil {
 	//	return nil, err

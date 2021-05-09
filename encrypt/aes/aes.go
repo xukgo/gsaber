@@ -6,7 +6,7 @@ import (
 	"crypto/cipher"
 )
 
-func AesEncrypt(origData []byte, k []byte) []byte {
+func Encrypt(origData []byte, k []byte) []byte {
 	// 转成字节数组
 	//origData := []byte(orig)
 
@@ -27,7 +27,7 @@ func AesEncrypt(origData []byte, k []byte) []byte {
 	//return base64.StdEncoding.EncodeToString(cryted)
 }
 
-func AesDecrypt(crytedByte []byte, k []byte) []byte {
+func Decrypt(crytedByte []byte, k []byte) []byte {
 	// 转成字节数组
 	//crytedByte, _ := base64.StdEncoding.DecodeString(cryted)
 
