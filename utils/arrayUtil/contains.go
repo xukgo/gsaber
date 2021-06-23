@@ -22,6 +22,18 @@ func Contains(array interface{}, val interface{}) (index int) {
 	return
 }
 
+// ContainsBytes Returns the index position of the bytes val in array
+func ContainsBytes(array [][]byte, val []byte) (index int) {
+	index = -1
+	for i := 0; i < len(array); i++ {
+		if EqualsBytes(array[i], val) {
+			index = i
+			return
+		}
+	}
+	return
+}
+
 // ContainsString Returns the index position of the string val in array
 func ContainsString(array []string, val string) (index int) {
 	index = -1
