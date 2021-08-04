@@ -43,17 +43,18 @@ func NewErrorHttpResponse(err error) HttpResponse {
 func HttpGet(url string, timeout time.Duration) HttpResponse {
 	client := &http.Client{Timeout: time.Duration(timeout) * time.Millisecond}
 	resp, err := client.Get(url)
+	if resp != nil {
+		defer resp.Body.Close()
+	}
 	if err != nil {
 		return NewErrorHttpResponse(err)
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		_ = resp.Body.Close()
 		return NewErrorHttpResponse(err)
 	}
 
-	_ = resp.Body.Close()
 	return NewHttpResponse(err, resp.StatusCode, resp.Status, body)
 }
 
@@ -100,12 +101,14 @@ func HttpPostJsonWithHeader(url string, header map[string]string, gson string, t
 	}
 
 	resp, err := client.Do(reqs)
+	if resp != nil {
+		defer resp.Body.Close()
+	}
 	if err != nil {
 		return NewErrorHttpResponse(err)
 	}
 
 	resBuff, err := io.ReadAll(resp.Body)
-	_ = resp.Body.Close()
 	return NewHttpResponse(err, resp.StatusCode, resp.Status, resBuff)
 }
 
@@ -151,11 +154,13 @@ func HttpPostFileAndDataWithHeader(url string, header map[string]string, fieldDi
 
 	client := &http.Client{Timeout: time.Duration(timeout) * time.Millisecond}
 	resp, err := client.Do(reqs)
+	if resp != nil {
+		defer resp.Body.Close()
+	}
 	if err != nil {
 		return NewErrorHttpResponse(err)
 	}
 
 	resBuff, err := io.ReadAll(resp.Body)
-	_ = resp.Body.Close()
 	return NewHttpResponse(err, resp.StatusCode, resp.Status, resBuff)
 }
