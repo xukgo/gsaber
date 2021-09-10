@@ -8,6 +8,19 @@ package ruleUtil
 
 import "testing"
 
+func TestNilEqual(t *testing.T) {
+	var br bool
+	var a map[string]int = nil
+	br = InterfaceIsNil(a)
+	if !br {
+		t.FailNow()
+	}
+	var c []string = nil
+	br = InterfaceIsNil(c)
+	if !br {
+		t.FailNow()
+	}
+}
 func TestFloatSuccess(t *testing.T) {
 	if !CheckIsFloat("0") {
 		t.Fail()
@@ -112,8 +125,8 @@ func TestFloatFail(t *testing.T) {
 	}
 }
 
-func Benchmark_intRule(b *testing.B){
-	for i:=0;i<b.N;i++{
+func Benchmark_intRule(b *testing.B) {
+	for i := 0; i < b.N; i++ {
 		CheckIsIntRange("100", 0, 65535)
 	}
 }
@@ -121,19 +134,19 @@ func Benchmark_intRule(b *testing.B){
 func TestCheckIsLenPhoneNumber(t *testing.T) {
 	var no string
 	no = "+8615986400521"
-	if !CheckIsLenPhoneNumber(no, 20){
+	if !CheckIsLenPhoneNumber(no, 20) {
 		t.Fail()
 	}
 	no = "-8615986400521"
-	if CheckIsLenPhoneNumber(no, 20){
+	if CheckIsLenPhoneNumber(no, 20) {
 		t.Fail()
 	}
 	no = "8615986400521"
-	if !CheckIsLenPhoneNumber(no, 20){
+	if !CheckIsLenPhoneNumber(no, 20) {
 		t.Fail()
 	}
 	no = "15986400521"
-	if !CheckIsLenPhoneNumber(no, 20){
+	if !CheckIsLenPhoneNumber(no, 20) {
 		t.Fail()
 	}
 }
@@ -141,15 +154,15 @@ func TestCheckIsLenPhoneNumber(t *testing.T) {
 func TestCheckIsCnPhoneNumber(t *testing.T) {
 	var no string
 	no = "+8615986400521"
-	if !CheckIsCnMobilWith86Start(no){
+	if !CheckIsCnMobilWith86Start(no) {
 		t.Fail()
 	}
 	no = "8615986400521"
-	if !CheckIsCnMobilWith86Start(no){
+	if !CheckIsCnMobilWith86Start(no) {
 		t.Fail()
 	}
 	no = "-8615986400521"
-	if CheckIsCnMobilWith86Start(no){
+	if CheckIsCnMobilWith86Start(no) {
 		t.Fail()
 	}
 }
