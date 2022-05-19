@@ -8,6 +8,7 @@ import (
 	"github.com/valyala/fastrand"
 )
 
+var numberArr = []byte("0123456789")
 var charArr1 = []byte("0123456789ABCDEF")
 var charArr2 = []byte("0123456789abcdef")
 var charArr3 = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -25,6 +26,11 @@ func rand8Bytes() []byte {
 func newInt32() int32 {
 	n := fastrand.Uint32()
 	return int32(n)
+}
+
+func newInt() int {
+	n := fastrand.Uint32()
+	return int(n)
 }
 
 func newInt64() int64 {
@@ -55,6 +61,16 @@ func NewInt64(min, max int64) int64 {
 	return randVal + min
 }
 
+func NewInt(min, max int) int {
+	randVal := newInt()
+	if randVal < 0 {
+		randVal = -randVal
+	}
+	seg := max - min
+	randVal = randVal % seg
+	return randVal + min
+}
+
 //新建一个随机手机号，1开头的11位，后面不管
 func NewPhoneNumber() string {
 	var builder strings.Builder
@@ -73,6 +89,17 @@ func NewString(count int) string {
 	runeLen := int32(len(letters))
 	for i := 0; i < count; i++ {
 		ru := letters[NewInt32(0, runeLen)]
+		bb[i] = ru
+	}
+	return string(bb)
+}
+
+func NewNumberString(count int) string {
+	var bb = make([]byte, count)
+	letters := numberArr
+	runeLen := len(letters)
+	for i := 0; i < count; i++ {
+		ru := letters[NewInt(0, runeLen)]
 		bb[i] = ru
 	}
 	return string(bb)
