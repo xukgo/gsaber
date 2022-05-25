@@ -1,10 +1,22 @@
 package arrayUtil
 
-import ()
-
 func StringsContains(array []string, val string) (index int) {
 	index = ContainsString(array, val)
 	return
+}
+
+func StringsContainsAll(array []string, vals []string) bool {
+	matchCount := 0
+	for idx := range vals {
+		if ContainsString(array, vals[idx]) >= 0 {
+			matchCount++
+		}
+	}
+
+	if matchCount == len(vals) {
+		return true
+	}
+	return false
 }
 
 // func IntsContains(array []int, val int) (index int) {

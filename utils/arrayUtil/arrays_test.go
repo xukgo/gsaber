@@ -22,6 +22,23 @@ func TestStringsContains(t *testing.T) {
 	}
 }
 
+func TestStringsContainsAll_Success(t *testing.T) {
+	var arr1 = []string{"wxnacy", "winn", "adads435"}
+	var arr2 = []string{"winn", "adads435"}
+	br := StringsContainsAll(arr1, arr2)
+	if !br {
+		t.FailNow()
+	}
+}
+func TestStringsContainsAll_Failed(t *testing.T) {
+	var arr1 = []string{"wxnacy", "winn", "adads435"}
+	var arr2 = []string{"winn", "321312"}
+	br := StringsContainsAll(arr1, arr2)
+	if br {
+		t.FailNow()
+	}
+}
+
 func TestIntsContains(t *testing.T) {
 	var arr = []int64{1, 3, 4, 8, 12, 4, 9}
 	var s = 12
