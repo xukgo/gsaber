@@ -19,28 +19,29 @@ func NewSizeLocker(size int) *Locker {
 	model.lockers = make([]sync.Locker, size)
 	for i := 0; i < size; i++ {
 		model.lockers[i] = new(sync.Mutex)
+
 	}
 	return model
 }
 
-func (this *Locker) LockIndex(index int){
+func (this *Locker) LockIndex(index int) {
 	lk := this.lockers[index]
 	lk.Lock()
 }
 
-func (this *Locker) UnlockIndex(index int){
+func (this *Locker) UnlockIndex(index int) {
 	lk := this.lockers[index]
 	lk.Unlock()
 }
 
-func (this *Locker) Lock(key []byte) int{
+func (this *Locker) Lock(key []byte) int {
 	index := this.GetKeyIndex(key)
 	lk := this.lockers[index]
 	lk.Lock()
 	return index
 }
 
-func (this *Locker) Unlock(key []byte) int{
+func (this *Locker) Unlock(key []byte) int {
 	index := this.GetKeyIndex(key)
 	lk := this.lockers[index]
 	lk.Unlock()

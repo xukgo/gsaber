@@ -1,7 +1,6 @@
 package fileWatcher
 
 import (
-	"fmt"
 	"github.com/xukgo/gsaber/utils/fileUtil"
 	"log"
 	"os"
@@ -75,7 +74,7 @@ func (this *Watcher) do() {
 
 		this.observerLocker.Lock()
 		if this.observerArray != nil && len(this.observerArray) > 0 {
-			fmt.Printf("file changed notify observers; path:%s\r\n", this.fileUrl)
+			//fmt.Printf("file changed notify observers; path:%s\r\n", this.fileUrl)
 			for _, observer := range this.observerArray {
 				observer.UpdateFromContent(fileContent)
 			}

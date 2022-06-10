@@ -16,6 +16,14 @@ const METHOD_POST = "POST"
 const METHOD_PUT = "PUT"
 const METHOD_DELETE = "DELETE"
 
+var postJsonHeader = initPostJsonHeader()
+
+func initPostJsonHeader() map[string]string {
+	header := make(map[string]string)
+	header["Content-Type"] = "application/json; charset=utf-8"
+	return header
+}
+
 type HttpResponse struct {
 	Error      error
 	Data       []byte
@@ -59,9 +67,7 @@ func HttpGet(url string, timeout time.Duration) HttpResponse {
 }
 
 func HttpPostJson(url string, gson string, timeout int, multiplex bool) HttpResponse {
-	header := make(map[string]string)
-	header["Content-Type"] = "application/json; charset=utf-8"
-	return HttpPostJsonWithHeader(url, header, gson, timeout, multiplex)
+	return HttpPostJsonWithHeader(url, postJsonHeader, gson, timeout, multiplex)
 }
 
 func HttpPostJsonWithHeader(url string, header map[string]string, gson string, timeout int, multiplex bool) HttpResponse {

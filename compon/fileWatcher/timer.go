@@ -1,7 +1,6 @@
 package fileWatcher
 
 import (
-	"fmt"
 	"sync"
 	"time"
 )
@@ -10,7 +9,7 @@ var localWatcherLocker = sync.RWMutex{}
 var localWatchers = make([]*Watcher, 0, 0)
 
 func Start() {
-	fmt.Printf("start file watch service\r\n")
+	//fmt.Printf("start file watch service\r\n")
 	update()
 
 	minInterval := 200

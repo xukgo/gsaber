@@ -2,7 +2,6 @@ package timewheel
 
 import (
 	"container/list"
-	"fmt"
 	"math"
 	"time"
 )
@@ -259,7 +258,7 @@ func (tw *TimeWheel) removeTask(key interface{}) {
 		if task.key == key {
 			delete(tw.timer, task.key)
 			l.Remove(e)
-			fmt.Printf("%s removeTask %v\n", formatTime(time.Now()), key)
+			//fmt.Printf("%s removeTask %v\n", formatTime(time.Now()), key)
 		}
 
 		e = e.Next()

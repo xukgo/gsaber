@@ -11,9 +11,10 @@ import (
 var numberArr = []byte("0123456789")
 var charArr1 = []byte("0123456789ABCDEF")
 var charArr2 = []byte("0123456789abcdef")
-var charArr3 = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-var charArr4 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-var charArr5 = "abcdefghijklmnopqrstuvwxyz"
+
+const charArr3 = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+const charArr4 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+const charArr5 = "abcdefghijklmnopqrstuvwxyz"
 
 func rand8Bytes() []byte {
 	var buf = make([]byte, 8)
