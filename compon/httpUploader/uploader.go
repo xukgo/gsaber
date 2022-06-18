@@ -7,7 +7,6 @@ import (
 	"io"
 	"mime/multipart"
 	"path"
-	"sync"
 	"sync/atomic"
 	"time"
 )
@@ -100,11 +99,11 @@ func (this *Uploader) Upload(response *fasthttp.Response, timeout time.Duration)
 	multipartWriter := multipart.NewWriter(limitWriter)
 	contentType := multipartWriter.FormDataContentType()
 
-	wg := &sync.WaitGroup{}
-	wg.Add(1)
+	//wg := &sync.WaitGroup{}
+	//wg.Add(1)
 
 	go func() {
-		defer wg.Done()
+		//defer wg.Done()
 		defer pipew.Close()
 
 		this.limitWrite(multipartWriter, buff)
@@ -123,11 +122,10 @@ func (this *Uploader) Upload(response *fasthttp.Response, timeout time.Duration)
 	request.SetRequestURI(this.url)
 
 	err := this.client.DoTimeout(request, response, timeout)
-	wg.Wait()
 	if err != nil {
-		//fmt.Printf("http post error:%s\n", err)
 		return err
 	}
+	//wg.Wait()
 	if limitWriter != nil {
 		atomic.StoreInt64(&this.totalWriteBytes, limitWriter.GetTotalWriteCount())
 	}

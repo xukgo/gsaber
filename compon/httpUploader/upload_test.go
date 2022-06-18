@@ -32,7 +32,7 @@ var singletonClient = &fasthttp.Client{
 
 func TestUploadNoLimit(t *testing.T) {
 	//file, err := os.Open("F:\\FFOutput\\sample1.wav")
-	file, err := os.Open("F:\\FFOutput\\floop.wav")
+	file, err := os.Open("/home/hermes/Music/sample1.wav")
 	if err != nil {
 		t.FailNow()
 		return
@@ -40,9 +40,9 @@ func TestUploadNoLimit(t *testing.T) {
 	//不要忘记关闭打开的文件
 	defer file.Close()
 	reader := bufio.NewReader(file)
-	cache := make([]byte, 10*1024*1024)
+	cache := make([]byte, 100*1024)
 
-	uploader := InitUploader(singletonClient, "http://127.0.0.1:8741", reader)
+	uploader := InitUploader(singletonClient, "http://192.168.5.164:8741", reader)
 	uploader.SetCache(cache)
 	uploader.SetFileName("sample.txt")
 	uploader.AddFormValue("app_id", "appid123")
@@ -53,16 +53,17 @@ func TestUploadNoLimit(t *testing.T) {
 	resp := fasthttp.AcquireResponse()
 	defer fasthttp.ReleaseResponse(resp)
 
-	err = uploader.Upload(resp, time.Second*30)
+	err = uploader.Upload(resp, time.Second*100)
 	if err != nil {
 		fmt.Printf("http post error:%s\n", err)
 		t.FailNow()
 	}
 	fasthttp.ReleaseResponse(resp)
+	fmt.Printf("http post success:%s\n", resp.Body())
 }
 
 func TestUploadLimitSpeed(t *testing.T) {
-	file, err := os.Open("F:\\FFOutput\\sample2.wav")
+	file, err := os.Open("/home/hermes/Music/sample1.wav")
 	//file, err := os.Open("F:\\FFOutput\\floop.wav")
 	if err != nil {
 		t.FailNow()
@@ -71,26 +72,29 @@ func TestUploadLimitSpeed(t *testing.T) {
 	//不要忘记关闭打开的文件
 	defer file.Close()
 	reader := bufio.NewReader(file)
-	cache := make([]byte, 64*1024*1024)
+	cache := make([]byte, 16*1024)
 
-	uploader := InitUploader(singletonClient, "http://127.0.0.1:8741", reader)
+	uploader := InitUploader(singletonClient, "http://192.168.5.164:8741", reader)
+	//uploader := InitUploader(singletonClient, "http://127.0.0.1:8741", reader)
 	uploader.SetCache(cache)
 	uploader.SetFileName("sample.txt")
 	uploader.AddFormValue("app_id", "appid123")
 	uploader.AddFormValue("is_check_wav", "0")
 	uploader.AddFormValue("createTime", time.Now().String())
 	uploader.AddFormValue("file_type", "1")
-	uploader.SetRateBytes(800 * 1024)
+	uploader.SetRateBytes(10 * 1024 * 1024)
 
 	resp := fasthttp.AcquireResponse()
 	defer fasthttp.ReleaseResponse(resp)
 
 	startAt := time.Now()
-	err = uploader.Upload(resp, time.Second*60)
+	err = uploader.Upload(resp, time.Second*100)
 	if err != nil {
 		fmt.Printf("http post error:%s\n", err)
+		time.Sleep(time.Hour)
 		t.FailNow()
 	}
+	fmt.Printf("http post success:%s\n", resp.Body())
 	totalWriteBytes := uploader.GetTotalWriteBytes()
 	elapse := time.Since(startAt)
 	speed := float64(totalWriteBytes) / 1024 / elapse.Seconds()
