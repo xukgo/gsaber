@@ -13,28 +13,30 @@ import (
 )
 
 type Uploader struct {
-	formArgs        map[string]string
-	fileFieldName   string
-	fileName        string
-	reader          io.Reader
-	cache           []byte
-	url             string
-	client          *fasthttp.Client
-	rateBytes       int           //每秒传输的字节数,0或者负数表示不限速
-	limitPrecision  time.Duration //限速精度，精度越大越不准可能超速，精度越小越不准可能欠速，最多1秒，最少10ms，默认250ms
-	totalWriteBytes int64
+	formArgs          map[string]string
+	fileFieldName     string
+	fileName          string
+	reader            io.Reader
+	cache             []byte
+	url               string
+	client            *fasthttp.Client
+	continue100Enable bool
+	rateBytes         int           //每秒传输的字节数,0或者负数表示不限速
+	limitPrecision    time.Duration //限速精度，精度越大越不准可能超速，精度越小越不准可能欠速，最多1秒，最少10ms，默认250ms
+	totalWriteBytes   int64
 }
 
 func InitUploader(client *fasthttp.Client, url string, reader io.Reader) Uploader {
 	model := Uploader{
-		formArgs:        make(map[string]string),
-		fileFieldName:   "file",
-		reader:          reader,
-		client:          client,
-		url:             url,
-		rateBytes:       0,
-		limitPrecision:  time.Millisecond * 250,
-		totalWriteBytes: 0,
+		formArgs:          make(map[string]string),
+		fileFieldName:     "file",
+		reader:            reader,
+		client:            client,
+		url:               url,
+		continue100Enable: false,
+		rateBytes:         0,
+		limitPrecision:    time.Millisecond * 250,
+		totalWriteBytes:   0,
 	}
 	return model
 }
@@ -44,6 +46,9 @@ func (this *Uploader) GetTotalWriteBytes() int64 {
 	return n
 }
 
+func (this *Uploader) SetContinue100Enable(enable bool) {
+	this.continue100Enable = enable
+}
 func (this *Uploader) SetCache(cache []byte) {
 	this.cache = cache
 }
@@ -110,8 +115,11 @@ func (this *Uploader) Upload(response *fasthttp.Response, timeout time.Duration)
 	defer fasthttp.ReleaseRequest(request)
 
 	request.Header.SetContentType(contentType)
-	request.SetBodyStream(piper, -1)
 	request.Header.SetMethod("POST")
+	if this.continue100Enable {
+		request.Header.Set("Expect", "100-continue")
+	}
+	request.SetBodyStream(piper, -1)
 	request.SetRequestURI(this.url)
 
 	err := this.client.DoTimeout(request, response, timeout)
