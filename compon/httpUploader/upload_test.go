@@ -2,9 +2,13 @@ package httpUploader
 
 import (
 	"bufio"
+	"compress/gzip"
 	"fmt"
 	"github.com/valyala/fasthttp"
+	"io"
 	"os"
+	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -40,10 +44,25 @@ func TestUploadNoLimit(t *testing.T) {
 	//不要忘记关闭打开的文件
 	defer file.Close()
 	reader := bufio.NewReader(file)
-	cache := make([]byte, 100*1024)
+	cache := make([]byte, 16*1024)
 
-	uploader := InitUploader(singletonClient, "http://192.168.5.164:8741", reader)
-	uploader.SetCache(cache)
+	uploader := InitUploader(singletonClient, "http://192.168.5.164:8741", func(fileWriter io.Writer) error {
+		n, err := reader.Read(cache)
+		if n > 0 {
+			_, err = fileWriter.Write(cache[:n])
+			if err != nil {
+				return err
+			}
+		}
+		if err == io.EOF {
+			return err
+		}
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	//uploader.SetCache(cache)
 	uploader.SetFileName("sample.txt")
 	uploader.AddFormValue("app_id", "appid123")
 	uploader.AddFormValue("is_check_wav", "0")
@@ -72,17 +91,39 @@ func TestUploadLimitSpeed(t *testing.T) {
 	//不要忘记关闭打开的文件
 	defer file.Close()
 	reader := bufio.NewReader(file)
-	cache := make([]byte, 16*1024)
+	cache := make([]byte, 8*1024*1024)
 
-	uploader := InitUploader(singletonClient, "http://192.168.5.164:8741", reader)
+	var gzReader = NewGzReadWriter(reader)
+	defer gzReader.Close()
+	once := new(sync.Once)
+
+	uploader := InitUploader(singletonClient, "http://192.168.5.164:8741", func(fileWriter io.Writer) error {
+		once.Do(func() {
+			gzReader.SetWriter(fileWriter)
+		})
+		n, err := gzReader.ReadWrite(cache)
+		if n > 0 {
+			_, err = fileWriter.Write(cache[:n])
+			if err != nil {
+				return err
+			}
+		}
+		if err == io.EOF {
+			return err
+		}
+		if err != nil {
+			return err
+		}
+		return nil
+	})
 	//uploader := InitUploader(singletonClient, "http://127.0.0.1:8741", reader)
-	uploader.SetCache(cache)
+	//uploader.SetCache(cache)
 	uploader.SetFileName("sample.txt")
 	uploader.AddFormValue("app_id", "appid123")
 	uploader.AddFormValue("is_check_wav", "0")
 	uploader.AddFormValue("createTime", time.Now().String())
 	uploader.AddFormValue("file_type", "1")
-	uploader.SetRateBytes(10 * 1024 * 1024)
+	//uploader.SetRateBytes(50 * 1024 * 1024)
 
 	resp := fasthttp.AcquireResponse()
 	defer fasthttp.ReleaseResponse(resp)
@@ -99,4 +140,64 @@ func TestUploadLimitSpeed(t *testing.T) {
 	elapse := time.Since(startAt)
 	speed := float64(totalWriteBytes) / 1024 / elapse.Seconds()
 	fmt.Printf("send total=%d duration=%dms speed=%.2fkB/s\n", totalWriteBytes/1024, elapse.Milliseconds(), speed)
+
+	compressFactor := float64(gzReader.compressSize) / float64(gzReader.sourceSize)
+	fmt.Printf("compress rate:%.2f src:%d target:%d\n", compressFactor, gzReader.sourceSize, gzReader.compressSize)
+}
+
+type GzReadWriter struct {
+	reader       io.Reader
+	gzWriter     *gzip.Writer
+	sourceSize   int64
+	compressSize int64
+}
+
+func NewGzReadWriter(reader io.Reader) *GzReadWriter {
+	return &GzReadWriter{reader: reader}
+}
+
+func (this *GzReadWriter) SetWriter(writer io.Writer) error {
+	gzWriter, err := gzip.NewWriterLevel(writer, gzip.DefaultCompression)
+	if err != nil {
+		return err
+	}
+	this.gzWriter = gzWriter
+	return nil
+}
+
+func (this *GzReadWriter) GetSourceSize() int64 {
+	return atomic.LoadInt64(&this.sourceSize)
+}
+
+func (this *GzReadWriter) GetCompressSize() int64 {
+	return atomic.LoadInt64(&this.compressSize)
+}
+func (this *GzReadWriter) Close() error {
+	if this.gzWriter != nil {
+		return this.gzWriter.Close()
+	}
+	return nil
+}
+
+func (this *GzReadWriter) ReadWrite(p []byte) (n int, err error) {
+	if this.gzWriter == nil {
+		return 0, fmt.Errorf("gzWriter is nil")
+	}
+	n, err = this.reader.Read(p)
+	if err == io.EOF && n > 0 {
+		atomic.AddInt64(&this.sourceSize, int64(n))
+		n, err = this.gzWriter.Write(p[:n])
+		atomic.AddInt64(&this.compressSize, int64(n))
+		return n, io.EOF
+	}
+	if err != nil {
+		return 0, err
+	}
+	if n > 0 {
+		atomic.AddInt64(&this.sourceSize, int64(n))
+		n, err = this.gzWriter.Write(p[:n])
+		atomic.AddInt64(&this.compressSize, int64(n))
+		return n, err
+	}
+	return 0, nil
 }
