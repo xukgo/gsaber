@@ -116,3 +116,14 @@ func GetFileNameNoExt(path string) string {
 		return fileName[:index]
 	}
 }
+
+func GetFileSize(path string) int64 {
+	finfo, err := os.Stat(path)
+	if err != nil {
+		return -1
+	}
+
+	size := finfo.Size()
+	return size
+
+}
