@@ -11,27 +11,30 @@ import (
 	"time"
 )
 
+type FileWriteFunc func(io.Writer) error
 type Uploader struct {
-	formArgs          map[string]string
-	fileFieldName     string
-	fileName          string
-	reader            io.Reader
-	cache             []byte
+	formArgs      map[string]string
+	fileFieldName string
+	fileName      string
+	//reader            io.Reader
+	//cache             []byte
 	url               string
 	client            *fasthttp.Client
 	continue100Enable bool
 	rateBytes         int           //每秒传输的字节数,0或者负数表示不限速
 	limitPrecision    time.Duration //限速精度，精度越大越不准可能超速，精度越小越不准可能欠速，最多1秒，最少10ms，默认250ms
 	totalWriteBytes   int64
+	fileWriteFunc     FileWriteFunc
 }
 
-func InitUploader(client *fasthttp.Client, url string, reader io.Reader) Uploader {
+func InitUploader(client *fasthttp.Client, url string, fileWriteFunc FileWriteFunc) Uploader {
 	model := Uploader{
-		formArgs:          make(map[string]string),
-		fileFieldName:     "file",
-		reader:            reader,
+		formArgs:      make(map[string]string),
+		fileFieldName: "file",
+		//reader:            reader,
 		client:            client,
 		url:               url,
+		fileWriteFunc:     fileWriteFunc,
 		continue100Enable: false,
 		rateBytes:         0,
 		limitPrecision:    time.Millisecond * 250,
@@ -48,9 +51,10 @@ func (this *Uploader) GetTotalWriteBytes() int64 {
 func (this *Uploader) SetContinue100Enable(enable bool) {
 	this.continue100Enable = enable
 }
-func (this *Uploader) SetCache(cache []byte) {
-	this.cache = cache
-}
+
+//func (this *Uploader) SetCache(cache []byte) {
+//	this.cache = cache
+//}
 func (this *Uploader) SetRateBytes(rate int) {
 	this.rateBytes = rate
 }
@@ -80,10 +84,10 @@ func (this *Uploader) Upload(response *fasthttp.Response, timeout time.Duration)
 	piper, pipew := io.Pipe()
 	defer piper.Close()
 
-	var buff = this.cache
-	if len(buff) == 0 {
-		buff = make([]byte, 10*1024)
-	}
+	//var buff = this.cache
+	//if len(buff) == 0 {
+	//	buff = make([]byte, 10*1024)
+	//}
 
 	var limitWriter *limitio.LimitWriter = nil
 	if this.rateBytes > 0 {
@@ -106,7 +110,7 @@ func (this *Uploader) Upload(response *fasthttp.Response, timeout time.Duration)
 		//defer wg.Done()
 		defer pipew.Close()
 
-		this.limitWrite(multipartWriter, buff)
+		this.limitWrite(multipartWriter)
 	}()
 
 	//构建request，发送请求
@@ -132,7 +136,7 @@ func (this *Uploader) Upload(response *fasthttp.Response, timeout time.Duration)
 	return nil
 }
 
-func (this *Uploader) limitWrite(multipartWriter *multipart.Writer, buff []byte) {
+func (this *Uploader) limitWrite(multipartWriter *multipart.Writer) {
 	//创建一个multipart文件写入器，方便按照http规定格式写入内容
 	for k, v := range this.formArgs {
 		err := multipartWriter.WriteField(k, v)
@@ -154,18 +158,11 @@ func (this *Uploader) limitWrite(multipartWriter *multipart.Writer, buff []byte)
 	defer multipartWriter.Close()
 
 	for {
-		n, err := this.reader.Read(buff)
-		if n > 0 {
-			_, err = fileWriter.Write(buff[:n])
-			if err != nil {
-				//fmt.Printf("fileWriter Write error:%s\n", err)
-				return
-			}
-		}
+		err = this.fileWriteFunc(fileWriter)
 		if err == io.EOF {
 			break
-		} else if err != nil {
-			//fmt.Printf("bufio read file error:%s\n", err)
+		}
+		if err != nil {
 			return
 		}
 	}

@@ -4,18 +4,21 @@ import (
 	"bufio"
 	"fmt"
 	"github.com/valyala/fasthttp"
+	"github.com/xukgo/gsaber/compon/gzReadWriter"
+	"io"
 	"os"
+	"sync"
 	"testing"
 	"time"
 )
 
 var singletonClient = &fasthttp.Client{
 	// 读超时时间,不设置read超时,可能会造成连接复用失效
-	ReadTimeout: time.Second * 30,
+	ReadTimeout: time.Second * 5,
 	// 写超时时间
 	//WriteTimeout: time.Second * 30,
 	// 60秒后，关闭空闲的活动连接
-	MaxIdleConnDuration: time.Second * 60,
+	MaxIdleConnDuration: time.Minute * 5,
 	// 当true时,从请求中去掉User-Agent标头
 	NoDefaultUserAgentHeader: true,
 	// 当true时，header中的key按照原样传输，默认会根据标准化转化
@@ -40,10 +43,25 @@ func TestUploadNoLimit(t *testing.T) {
 	//不要忘记关闭打开的文件
 	defer file.Close()
 	reader := bufio.NewReader(file)
-	cache := make([]byte, 100*1024)
+	cache := make([]byte, 16*1024)
 
-	uploader := InitUploader(singletonClient, "http://192.168.5.164:8741", reader)
-	uploader.SetCache(cache)
+	uploader := InitUploader(singletonClient, "http://192.168.5.164:8741", func(fileWriter io.Writer) error {
+		n, err := reader.Read(cache)
+		if n > 0 {
+			_, err = fileWriter.Write(cache[:n])
+			if err != nil {
+				return err
+			}
+		}
+		if err == io.EOF {
+			return err
+		}
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	//uploader.SetCache(cache)
 	uploader.SetFileName("sample.txt")
 	uploader.AddFormValue("app_id", "appid123")
 	uploader.AddFormValue("is_check_wav", "0")
@@ -74,15 +92,30 @@ func TestUploadLimitSpeed(t *testing.T) {
 	reader := bufio.NewReader(file)
 	cache := make([]byte, 16*1024)
 
-	uploader := InitUploader(singletonClient, "http://192.168.5.164:8741", reader)
+	var zrw = gzReadWriter.NewGzReadWriter(reader)
+	//defer zrw.Close()
+	once := new(sync.Once)
+
+	uploader := InitUploader(singletonClient, "http://192.168.5.164:8741", func(fileWriter io.Writer) error {
+		once.Do(func() {
+			zrw.SetWriter(fileWriter)
+		})
+		_, err := zrw.ReadWrite(cache)
+		if err != nil {
+			zrw.Close()
+			fmt.Printf("gzReadWriter ReadWrite error:%s\n", err)
+			return err
+		}
+		return nil
+	})
 	//uploader := InitUploader(singletonClient, "http://127.0.0.1:8741", reader)
-	uploader.SetCache(cache)
+	//uploader.SetCache(cache)
 	uploader.SetFileName("sample.txt")
 	uploader.AddFormValue("app_id", "appid123")
 	uploader.AddFormValue("is_check_wav", "0")
 	uploader.AddFormValue("createTime", time.Now().String())
 	uploader.AddFormValue("file_type", "1")
-	uploader.SetRateBytes(10 * 1024 * 1024)
+	//uploader.SetRateBytes(50 * 1024 * 1024)
 
 	resp := fasthttp.AcquireResponse()
 	defer fasthttp.ReleaseResponse(resp)
