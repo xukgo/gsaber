@@ -57,6 +57,9 @@ func CheckIsContainerEnv() (bool, error) {
 }
 
 func checkContainerKey(str string) bool {
+	if strings.Index(str, "kubepod") >= 0 || strings.Index(str, "Kubepod") >= 0 {
+		return true
+	}
 	if strings.Index(str, "docker") >= 0 || strings.Index(str, "Docker") >= 0 {
 		return true
 	}
