@@ -49,7 +49,7 @@ type Task struct {
 	iScron  bool
 }
 
-// New 创建时间轮
+// New 创建时间轮 //当精度是1ms的时候，准确度较差，建议精度设置最小10ms
 func New(interval time.Duration, slotNum int, taskCap int, job Job) *TimeWheel {
 	if interval <= 0 || slotNum <= 0 || taskCap < 0 {
 		return nil
@@ -141,7 +141,7 @@ func (tw *TimeWheel) Remove(key interface{}) {
 	}
 }
 
-//var count uint64 = 0
+// var count uint64 = 0
 func (tw *TimeWheel) start() {
 	for {
 		select {
