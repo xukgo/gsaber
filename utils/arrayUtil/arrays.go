@@ -1,5 +1,35 @@
 package arrayUtil
 
+import "strings"
+
+func StringsTrimSpaceFilterEmpty(arr []string) []string {
+	res := make([]string, 0, len(arr))
+	for _, item := range arr {
+		item = strings.TrimSpace(item)
+		if len(item) == 0 {
+			continue
+		}
+		res = append(res, item)
+	}
+	return res
+}
+
+func StringsToLower(arr []string) []string {
+	res := make([]string, 0, len(arr))
+	for _, item := range arr {
+		res = append(res, strings.ToLower(item))
+	}
+	return res
+}
+
+func StringsToUpper(arr []string) []string {
+	res := make([]string, 0, len(arr))
+	for _, item := range arr {
+		res = append(res, strings.ToUpper(item))
+	}
+	return res
+}
+
 func StringsContains(array []string, val string) (index int) {
 	index = ContainsString(array, val)
 	return

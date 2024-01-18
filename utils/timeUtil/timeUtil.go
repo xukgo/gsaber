@@ -39,3 +39,13 @@ func ParseTsToUnixNano(ts string) (int64, error) {
 	}
 	return v * factor, nil
 }
+
+// ms
+func FormatMsTimestampString(ts time.Time) string {
+	return strconv.FormatInt(ts.UnixNano()/1000000, 10)
+}
+
+// ms
+func FormatMsTimestamp(ts time.Time) int64 {
+	return ts.UnixNano() / 1000000
+}
