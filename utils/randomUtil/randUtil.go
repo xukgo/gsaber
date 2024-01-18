@@ -2,10 +2,9 @@ package randomUtil
 
 import (
 	"encoding/binary"
+	"github.com/valyala/fastrand"
 	"strconv"
 	"strings"
-
-	"github.com/valyala/fastrand"
 )
 
 var numberArr = []byte("0123456789")
@@ -40,7 +39,7 @@ func newInt64() int64 {
 	return longVal
 }
 
-//x>=min and x<max
+// x>=min and x<max
 func NewInt32(min, max int32) int32 {
 	randVal := newInt32()
 	if randVal < 0 {
@@ -72,7 +71,7 @@ func NewInt(min, max int) int {
 	return randVal + min
 }
 
-//新建一个随机手机号，1开头的11位，后面不管
+// 新建一个随机手机号，1开头的11位，后面不管
 func NewPhoneNumber() string {
 	var builder strings.Builder
 
@@ -148,4 +147,17 @@ func NewLowerCharString(count int) string {
 		bb[i] = ru
 	}
 	return string(bb)
+}
+
+// RandomElementOrDefault returns a random element from a slice or a default value if the slice is empty.
+// 'T' is a type parameter constrained to 'comparable', which means any type that supports comparison.
+func RandomElementOrDefault[T comparable](slice []T, defaultValue T) T {
+	if len(slice) == 0 {
+		return defaultValue
+	}
+	if len(slice) == 1 {
+		return slice[0]
+	}
+	idx := NewInt(0, len(slice))
+	return slice[idx] // Return a random element from the slice.
 }
