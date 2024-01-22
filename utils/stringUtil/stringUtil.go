@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"github.com/xukgo/gsaber/utils/ruleUtil"
 	"reflect"
+	"regexp"
 	"strings"
 	"unsafe"
 )
 
-//判断src偏移位置开始是否以match开头,不做空字符串的匹配
+// 判断src偏移位置开始是否以match开头,不做空字符串的匹配
 func StartWithIndex(src string, srcIndex int, sub string) bool {
 	subLen := len(sub)
 	if subLen == 0 {
@@ -32,7 +33,7 @@ func StartWithIndex(src string, srcIndex int, sub string) bool {
 	return true
 }
 
-//判断src是否以match开头,不做空字符串的匹配
+// 判断src是否以match开头,不做空字符串的匹配
 func StartWith(src string, sub string) bool {
 	subLen := len(sub)
 	if subLen == 0 {
@@ -55,7 +56,7 @@ func StartWith(src string, sub string) bool {
 	return true
 }
 
-//按照分隔符分隔，并且分隔符也作为独立的字符串纳入返回结果
+// 按照分隔符分隔，并且分隔符也作为独立的字符串纳入返回结果
 func SplitContainsSeps(src string, seps []string) []string {
 	var arr []string
 	srclen := len(src)
@@ -93,7 +94,7 @@ func SplitContainsSeps(src string, seps []string) []string {
 	return arr
 }
 
-//删除号码前置的86，区号要补0
+// 删除号码前置的86，区号要补0
 func TelNoDelete86Head(number string) string {
 	if strings.Index(number, "86") != 0 {
 		return number
@@ -112,10 +113,10 @@ func TelNoDelete86Head(number string) string {
 	}
 }
 
-//添加号码前置86，手机号前加 86，如：8613511112222
-//固话前加 86 加区号（首位 0 不写），如：
-//北京固话 861082325588
-//400 类电话前加 86，如：864003008000
+// 添加号码前置86，手机号前加 86，如：8613511112222
+// 固话前加 86 加区号（首位 0 不写），如：
+// 北京固话 861082325588
+// 400 类电话前加 86，如：864003008000
 func TelNoAdd86Head(number string) string {
 	if len(number) == 0 {
 		return number
@@ -136,7 +137,7 @@ func TelNoAdd86Head(number string) string {
 	}
 }
 
-//把aaa[bbb]解析成aaa bbb
+// 把aaa[bbb]解析成aaa bbb
 func SplitMapFormatString(str string) (string, string, error) {
 	str1 := strings.ReplaceAll(str, "]", "")
 	str1 = strings.TrimSpace(str1)
@@ -170,4 +171,10 @@ func NoCopyString2Bytes(s string) (b []byte) {
 	bh.Len = sh.Len
 	bh.Cap = sh.Len
 	return b
+}
+
+func ExtractNumberStrings(str string) []string {
+	reg := regexp.MustCompile("[0-9]*\\.?[0-9]+")
+	nodes := reg.FindAllString(str, -1)
+	return nodes
 }
