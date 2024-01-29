@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-func DownloadWebFile(durl string, savePath string, timeout time.Duration) error {
+func DownloadWebFile(durl string, savePath string, cacheSize int, timeout time.Duration) error {
 	uri, err := url.ParseRequestURI(durl)
 	if err != nil {
 		return err
@@ -40,7 +40,7 @@ func DownloadWebFile(durl string, savePath string, timeout time.Duration) error 
 	raw := resp.Body
 	defer raw.Close()
 
-	reader := bufio.NewReaderSize(raw, 1024*32)
+	reader := bufio.NewReaderSize(raw, cacheSize)
 
 	file, err := os.Create(savePath)
 	if err != nil {
@@ -49,7 +49,7 @@ func DownloadWebFile(durl string, savePath string, timeout time.Duration) error 
 	writer := bufio.NewWriter(file)
 
 	var ret = true
-	buff := make([]byte, 32*1024)
+	buff := make([]byte, cacheSize)
 	written := 0
 	go func() {
 		for {
