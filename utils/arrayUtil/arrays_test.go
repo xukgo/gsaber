@@ -1,6 +1,8 @@
 package arrayUtil
 
 import (
+	"fmt"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
@@ -101,4 +103,18 @@ func BenchmarkStringsContains(b *testing.B) {
 	for n := 0; n < b.N; n++ {
 		StringsContains(sa, "r")
 	}
+}
+
+func Test_SplitIntoChunks(t *testing.T) {
+	intSlice := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+	intChunks := SplitIntoChunks(intSlice, 3)
+	fmt.Println(intChunks) // output: [[1 2 3] [4 5 6] [7 8 9] [10]]
+	assert.Equal(t, 4, len(intChunks))
+	assert.Equal(t, 10, intChunks[3][0])
+	intSlice = []int{1, 2, 3, 4, 5, 6, 7, 8, 9}
+	intChunks = SplitIntoChunks(intSlice, 3)
+	fmt.Println(intChunks) // output: [[1 2 3] [4 5 6] [7 8 9]]
+	assert.Equal(t, 3, len(intChunks))
+	assert.Equal(t, 7, intChunks[2][0])
+	assert.Equal(t, 9, intChunks[2][2])
 }

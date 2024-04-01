@@ -120,3 +120,12 @@ func IntsEqual(a, b []int) bool {
 	}
 	return true
 }
+
+func SplitIntoChunks[T any](s []T, chunkSize int) [][]T {
+	var chunks [][]T
+	for chunkSize < len(s) {
+		s, chunks = s[chunkSize:], append(chunks, s[0:chunkSize:chunkSize])
+	}
+	chunks = append(chunks, s)
+	return chunks
+}
