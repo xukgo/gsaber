@@ -49,7 +49,7 @@ func NewErrorHttpResponse(err error) HttpResponse {
 }
 
 func HttpGet(url string, timeout time.Duration) HttpResponse {
-	client := &http.Client{Timeout: time.Duration(timeout) * time.Millisecond}
+	client := &http.Client{Timeout: timeout}
 	resp, err := client.Get(url)
 	if resp != nil {
 		defer resp.Body.Close()
