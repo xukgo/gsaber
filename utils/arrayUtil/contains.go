@@ -2,6 +2,7 @@ package arrayUtil
 
 import (
 	"reflect"
+	"strings"
 )
 
 // Contains Returns the index position of the val in array
@@ -39,6 +40,18 @@ func ContainsString(array []string, val string) (index int) {
 	index = -1
 	for i := 0; i < len(array); i++ {
 		if array[i] == val {
+			index = i
+			return
+		}
+	}
+	return
+}
+
+// ContainsFoldString Returns the index position of the EqualFold string val in array
+func ContainsFoldString(array []string, val string) (index int) {
+	index = -1
+	for i := 0; i < len(array); i++ {
+		if strings.EqualFold(array[i], val) {
 			index = i
 			return
 		}
