@@ -263,7 +263,7 @@ func notEncrypted(encData []byte, in []byte) bool {
 	return true
 }
 
-//加密不可用同一个pub并发
+// 加密不可用同一个pub并发
 func Encrypt(pub *PublicKey, in []byte, cipherTextType Sm2CipherTextType) ([]byte, error) {
 	c2 := make([]byte, len(in))
 	copy(c2, in)
@@ -310,9 +310,21 @@ func Encrypt(pub *PublicKey, in []byte, cipherTextType Sm2CipherTextType) ([]byt
 	return result, nil
 }
 
-//解密可以用同一个priv并发
-func Decrypt(priv *PrivateKey, in []byte, cipherTextType Sm2CipherTextType) ([]byte, error) {
+// 解密可以用同一个priv并发
+func Decrypt(priv *PrivateKey, in []byte, cipherTextType Sm2CipherTextType) (output []byte, err error) {
+	output = nil
+	err = nil
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("panic from sm2 Decrypt:%v", r)
+			return
+		}
+	}()
+
 	c1Len := ((priv.Curve.BitSize+7)/8)*2 + 1
+	if len(in) < c1Len {
+		return nil, errors.New("ciphertext too short")
+	}
 	c1 := make([]byte, c1Len)
 	copy(c1, in[:c1Len])
 	c1x, c1y := elliptic.Unmarshal(priv.Curve, c1)
@@ -351,6 +363,7 @@ func Decrypt(priv *PrivateKey, in []byte, cipherTextType Sm2CipherTextType) ([]b
 	if !bytes.Equal(newC3, c3) {
 		return nil, errors.New("invalid cipher text")
 	}
+	output = c2
 	return c2, nil
 }
 
