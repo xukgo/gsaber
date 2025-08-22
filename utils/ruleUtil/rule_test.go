@@ -6,7 +6,10 @@
 */
 package ruleUtil
 
-import "testing"
+import (
+	"github.com/stretchr/testify/assert"
+	"testing"
+)
 
 func TestNilEqual(t *testing.T) {
 	var br bool
@@ -165,4 +168,20 @@ func TestCheckIsCnPhoneNumber(t *testing.T) {
 	if CheckIsCnMobilWith86Start(no) {
 		t.Fail()
 	}
+}
+
+func Test_CheckIpPort(t *testing.T) {
+	tcs := []string{
+		"192.168.1.1:8080",
+		"[2001:db8::1]:8080",
+		"127.0.0.1:80",
+		"invalid:port",
+		"256.256.256.256:80",
+	}
+
+	assert.True(t, IsValidIPPort(tcs[0]))
+	assert.True(t, IsValidIPPort(tcs[1]))
+	assert.True(t, IsValidIPPort(tcs[2]))
+	assert.True(t, !IsValidIPPort(tcs[3]))
+	assert.True(t, !IsValidIPPort(tcs[4]))
 }
