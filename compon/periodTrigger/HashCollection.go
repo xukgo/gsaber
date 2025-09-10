@@ -1,6 +1,7 @@
 package periodTrigger
 
 import (
+	"github.com/xukgo/gsaber/utils/reflectUtil"
 	"sync"
 	"time"
 )
@@ -20,6 +21,11 @@ func NewHashCollection(evictDuration, stableInterval time.Duration) *HashCollect
 		dict:           make(map[string]*periodTrigger, 64),
 	}
 	return model
+}
+
+func (c *HashCollection) CheckDefaultFuncLine(ts_ns int64, interval time.Duration) TriggerState {
+	key := reflectUtil.FormatCallerLineKey(2)
+	return c.Check(key, ts_ns, interval)
 }
 
 func (c *HashCollection) Check(key string, ts_ns int64, interval time.Duration) TriggerState {

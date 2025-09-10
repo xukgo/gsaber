@@ -55,3 +55,8 @@ func Test_hashCollection01(t *testing.T) {
 	assert.True(t, evictCount == 1)
 	assert.True(t, target.Count() == 0)
 }
+
+func Test_hashCollection02(t *testing.T) {
+	var target IPeriodTriggerCollection = NewHashCollection(time.Second*30, time.Second*3)
+	target.CheckDefaultFuncLine(1000, time.Second)
+}
