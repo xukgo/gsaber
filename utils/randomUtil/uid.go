@@ -1,4 +1,4 @@
-package stringUtil
+package randomUtil
 
 import (
 	"encoding/hex"
