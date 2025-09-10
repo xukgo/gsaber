@@ -4,6 +4,7 @@ go 1.19
 
 require (
 	github.com/buger/jsonparser v1.1.1
+	github.com/google/uuid v1.6.0
 	github.com/hhh0pE/decimal v0.0.0-20180504212053-f418d51636a9
 	github.com/json-iterator/go v1.1.12
 	github.com/juju/ratelimit v1.0.2
