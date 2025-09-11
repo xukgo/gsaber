@@ -24,7 +24,7 @@ func NewHashCollection(evictDuration, stableInterval time.Duration) *HashCollect
 }
 
 func (c *HashCollection) CheckDefaultFuncLine(ts_ns int64, interval time.Duration) TriggerState {
-	key := reflectUtil.FormatCallerLineKey(2)
+	key := reflectUtil.FormatCallerLineKey(1)
 	return c.Check(key, ts_ns, interval)
 }
 
