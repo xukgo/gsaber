@@ -55,9 +55,9 @@ func (c *IntervalTimeoutReader) StartIntervalDetect(cb func()) {
 		if dtNow.Sub(*t).Milliseconds() >= c.interval.Milliseconds() {
 			c.timeoutTrigger.Store(true)
 			if cb != nil {
-				c.locker.Lock()
+				//c.locker.Lock()
 				cb()
-				c.locker.Unlock()
+				//c.locker.Unlock()
 			}
 			return
 		}
@@ -69,9 +69,9 @@ func (c *IntervalTimeoutReader) Read(p []byte) (int, error) {
 		return 0, fmt.Errorf("read detect timeout")
 	}
 
-	c.locker.Lock()
+	//c.locker.Lock()
 	n, err := c.reader.Read(p)
-	c.locker.Unlock()
+	//c.locker.Unlock()
 
 	if c.CheckTimeout() {
 		return 0, fmt.Errorf("read detect timeout")
