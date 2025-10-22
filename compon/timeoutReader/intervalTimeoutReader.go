@@ -3,11 +3,13 @@ package timeoutReader
 import (
 	"fmt"
 	"io"
+	"sync"
 	"sync/atomic"
 	"time"
 )
 
 type IntervalTimeoutReader struct {
+	locker         sync.Mutex
 	reader         io.Reader
 	interval       time.Duration
 	detectInterval time.Duration
@@ -53,7 +55,9 @@ func (c *IntervalTimeoutReader) StartIntervalDetect(cb func()) {
 		if dtNow.Sub(*t).Milliseconds() >= c.interval.Milliseconds() {
 			c.timeoutTrigger.Store(true)
 			if cb != nil {
+				c.locker.Lock()
 				cb()
+				c.locker.Unlock()
 			}
 			return
 		}
@@ -65,7 +69,10 @@ func (c *IntervalTimeoutReader) Read(p []byte) (int, error) {
 		return 0, fmt.Errorf("read detect timeout")
 	}
 
+	c.locker.Lock()
 	n, err := c.reader.Read(p)
+	c.locker.Unlock()
+
 	if c.CheckTimeout() {
 		return 0, fmt.Errorf("read detect timeout")
 	}
