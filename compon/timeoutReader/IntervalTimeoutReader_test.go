@@ -3,9 +3,12 @@ package timeoutReader
 import (
 	"fmt"
 	"io"
+	"strings"
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_IntervalTimeoutReader_01(t *testing.T) {
@@ -16,8 +19,7 @@ func Test_IntervalTimeoutReader_01(t *testing.T) {
 	defer tmReader.CancelDetect()
 
 	wg.Add(1)
-	go tmReader.StartIntervalDetect(func() {
-		pw.Close()
+	go tmReader.StartDetect(func() {
 		wg.Done()
 	})
 
@@ -32,13 +34,18 @@ func Test_IntervalTimeoutReader_01(t *testing.T) {
 	}()
 
 	buf := make([]byte, 256)
-	for {
-		n, err := tmReader.Read(buf)
-		if err != nil {
-			fmt.Printf("read error: %s\n", err.Error())
-			break
-		}
-		fmt.Printf("read %d bytes: %s\n", n, string(buf[:n]))
-	}
+	n, err := tmReader.Read(buf)
+	assert.True(t, err == nil)
+	fmt.Printf("read %d bytes: %s\n", n, string(buf[:n]))
+
+	n, err = tmReader.Read(buf)
+	assert.True(t, err == nil)
+	fmt.Printf("read %d bytes: %s\n", n, string(buf[:n]))
+
+	n, err = tmReader.Read(buf)
+	assert.True(t, err != nil)
+	assert.True(t, strings.Contains(err.Error(), "timeout"))
+	fmt.Printf("read error: %s\n", err.Error())
+
 	wg.Wait()
 }
