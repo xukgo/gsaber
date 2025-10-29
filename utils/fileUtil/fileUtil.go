@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-//判断文件是否存在
+// 判断文件是否存在
 func Exists(path string) (bool, error) {
 	_, err := os.Stat(path)
 	if err == nil {
@@ -69,7 +69,7 @@ func ReadFile(path string) (string, error) {
 	return "", fmt.Errorf("%s is not exists", path)
 }
 
-//获取文件的后缀，不包含点
+// 获取文件的后缀，不包含点
 func GetFileExt(fileName string) string {
 	index := strings.LastIndex(fileName, ".")
 	if index <= 0 || index == len(fileName)-1 {
@@ -79,7 +79,7 @@ func GetFileExt(fileName string) string {
 	return fileName[index+1:]
 }
 
-//获取文件的文件夹路径，包含/
+// 获取文件的文件夹路径，包含/
 func GetFileDirUrl(fileName string) string {
 	index := strings.LastIndex(fileName, "/")
 	if index <= 0 {
@@ -89,7 +89,7 @@ func GetFileDirUrl(fileName string) string {
 	return fileName[:index+1]
 }
 
-//获取文件路径的文件名
+// 获取文件路径的文件名
 func GetFileName(path string) string {
 	index := strings.LastIndex(path, "/")
 	if index < 0 {
@@ -99,7 +99,7 @@ func GetFileName(path string) string {
 	return path[index+1:]
 }
 
-//获取文件路径的文件名，不包含后缀
+// 获取文件路径的文件名，不包含后缀
 func GetFileNameNoExt(path string) string {
 	var fileName string
 	index := strings.LastIndex(path, "/")
@@ -125,5 +125,16 @@ func GetFileSize(path string) int64 {
 
 	size := finfo.Size()
 	return size
+}
 
+func CreateTruncateEmptyDir(dir string, perm os.FileMode) error {
+	exist, _ := Exists(dir)
+	if exist {
+		err := os.RemoveAll(dir)
+		if err != nil {
+			return err
+		}
+	}
+	err := os.MkdirAll(dir, perm)
+	return err
 }
