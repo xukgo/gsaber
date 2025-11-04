@@ -27,15 +27,40 @@ func CheckIsFloat(str string) bool {
 }
 
 // 判断是否是数字字符串,允许0开头
-func CheckIsInteger(str string) bool {
-	matched, _ := regexp.MatchString(`^-?[0-9]\d*$`, str)
-	return matched
+func CheckIsInteger(s string) bool {
+	if len(s) == 0 {
+		return false
+	}
+
+	start := 0
+	// 检查符号
+	if s[0] == '-' || s[0] == '+' {
+		if len(s) == 1 {
+			return false // 只有符号不是有效数字
+		}
+		start = 1
+	}
+
+	// 检查剩余部分是否都是数字
+	for i := start; i < len(s); i++ {
+		if s[i] < '0' || s[i] > '9' {
+			return false
+		}
+	}
+	return true
 }
 
 // 判断是否是非负数字符串,允许0开头
-func CheckIsNonNegativeInteger(str string) bool {
-	matched, _ := regexp.MatchString(`^[0-9]\d*$`, str)
-	return matched
+func CheckIsNonNegativeInteger(s string) bool {
+	if s == "" {
+		return false
+	}
+	for i := 0; i < len(s); i++ {
+		if s[i] < '0' || s[i] > '9' {
+			return false
+		}
+	}
+	return true
 }
 
 // 是否是在一个范围内的数字

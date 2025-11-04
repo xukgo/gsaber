@@ -7,8 +7,10 @@
 package ruleUtil
 
 import (
-	"github.com/stretchr/testify/assert"
+	"fmt"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNilEqual(t *testing.T) {
@@ -132,6 +134,30 @@ func Benchmark_intRule(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		CheckIsIntRange("100", 0, 65535)
 	}
+}
+
+func Test_CheckIsInteger(t *testing.T) {
+	for i := -999; i < 999; i++ {
+		br := CheckIsInteger(fmt.Sprintf("%d", i))
+		assert.True(t, br == true)
+	}
+
+	assert.True(t, CheckIsInteger("-01"))
+	assert.True(t, CheckIsInteger("01"))
+	assert.False(t, CheckIsInteger("a01"))
+	assert.False(t, CheckIsInteger("1a01"))
+}
+
+func Test_CheckIsNonNegativeInteger(t *testing.T) {
+	for i := 0; i < 999; i++ {
+		br := CheckIsNonNegativeInteger(fmt.Sprintf("%d", i))
+		assert.True(t, br == true)
+	}
+
+	assert.True(t, CheckIsNonNegativeInteger("01"))
+	assert.False(t, CheckIsNonNegativeInteger("-1"))
+	assert.False(t, CheckIsNonNegativeInteger("a01"))
+	assert.False(t, CheckIsNonNegativeInteger("1a01"))
 }
 
 func TestCheckIsLenPhoneNumber(t *testing.T) {
