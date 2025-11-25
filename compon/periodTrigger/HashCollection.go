@@ -1,24 +1,28 @@
 package periodTrigger
 
 import (
-	"github.com/xukgo/gsaber/utils/reflectUtil"
 	"sync"
 	"time"
+
+	"github.com/xukgo/gsaber/utils/reflectUtil"
 )
 
 type HashCollection struct {
-	locker         sync.RWMutex
 	evictDuration  time.Duration
 	stableInterval time.Duration
 
-	dict map[string]*periodTrigger
+	strLocker  sync.RWMutex
+	strDict    map[string]*strPeriodTrigger
+	uintLocker sync.RWMutex
+	uintDict   map[uint64]*uintPeriodTrigger
 }
 
 func NewHashCollection(evictDuration, stableInterval time.Duration) *HashCollection {
 	model := &HashCollection{
 		evictDuration:  evictDuration,
 		stableInterval: stableInterval,
-		dict:           make(map[string]*periodTrigger, 64),
+		strDict:        make(map[string]*strPeriodTrigger, 64),
+		uintDict:       make(map[uint64]*uintPeriodTrigger, 64),
 	}
 	return model
 }
@@ -29,13 +33,29 @@ func (c *HashCollection) CheckDefaultFuncLine(ts_ns int64, interval time.Duratio
 }
 
 func (c *HashCollection) Check(key string, ts_ns int64, interval time.Duration) TriggerState {
-	c.locker.Lock()
-	defer c.locker.Unlock()
+	c.strLocker.Lock()
+	defer c.strLocker.Unlock()
 
-	v, find := c.dict[key]
+	v, find := c.strDict[key]
 	if !find {
-		s := newPeriodTrigger(key, interval.Nanoseconds())
-		c.dict[key] = s
+		s := newStrPeriodTrigger(key, interval.Nanoseconds())
+		c.strDict[key] = s
+		resp := s.Check(ts_ns)
+		return resp
+	} else {
+		resp := v.Check(ts_ns)
+		return resp
+	}
+}
+
+func (c *HashCollection) CheckUint(key uint64, ts_ns int64, interval time.Duration) TriggerState {
+	c.strLocker.Lock()
+	defer c.strLocker.Unlock()
+
+	v, find := c.uintDict[key]
+	if !find {
+		s := newUintPeriodTrigger(key, interval.Nanoseconds())
+		c.uintDict[key] = s
 		resp := s.Check(ts_ns)
 		return resp
 	} else {
@@ -45,24 +65,38 @@ func (c *HashCollection) Check(key string, ts_ns int64, interval time.Duration) 
 }
 
 func (c *HashCollection) Evict(ts int64) int {
-	c.locker.Lock()
-	defer c.locker.Unlock()
-
-	inactiveKeys := make([]string, 0, 64)
-	for k, v := range c.dict {
+	c.strLocker.Lock()
+	inactiveKeys1 := make([]string, 0, 4)
+	for k, v := range c.strDict {
 		if ts-v.AccessTs >= c.evictDuration.Nanoseconds() {
-			inactiveKeys = append(inactiveKeys, k)
+			inactiveKeys1 = append(inactiveKeys1, k)
 		}
 	}
-
-	for _, k := range inactiveKeys {
-		delete(c.dict, k)
+	for _, k := range inactiveKeys1 {
+		delete(c.strDict, k)
 	}
-	return len(inactiveKeys)
-}
-func (c *HashCollection) Count() int {
-	c.locker.RLock()
-	defer c.locker.RUnlock()
+	c.strLocker.Unlock()
 
-	return len(c.dict)
+	c.uintLocker.Lock()
+	inactiveKeys2 := make([]uint64, 0, 4)
+	for k, v := range c.uintDict {
+		if ts-v.AccessTs >= c.evictDuration.Nanoseconds() {
+			inactiveKeys2 = append(inactiveKeys2, k)
+		}
+	}
+	for _, k := range inactiveKeys2 {
+		delete(c.uintDict, k)
+	}
+	c.uintLocker.Unlock()
+
+	return len(inactiveKeys1) + len(inactiveKeys2)
+}
+
+func (c *HashCollection) Count() int {
+	c.strLocker.RLock()
+	c.uintLocker.RLock()
+	count := len(c.strDict) + len(c.uintDict)
+	c.strLocker.RUnlock()
+	c.uintLocker.RUnlock()
+	return count
 }

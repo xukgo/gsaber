@@ -15,22 +15,24 @@ type CallerLayerInfo struct {
 }
 
 func GetCallerLayerInfo(skip int) CallerLayerInfo {
-	result := CallerLayerInfo{}
-	pc, file, line, ok := runtime.Caller(skip + 1)
-	if !ok {
-		result.Ok = ok
-		return result
-	}
-	baseFile := filepath.Base(file)
-	funcName := runtime.FuncForPC(pc).Name()
-	if idx := strings.LastIndex(funcName, "."); idx != -1 {
-		funcName = funcName[idx+1:]
-	}
-	result.FileName = baseFile
-	result.Function = funcName
-	result.Line = line
-	result.Ok = ok
-	return result
+	pc := GetCallerPC(skip + 1)
+	return GetCallerLayerInfoFromPC(pc)
+	//result := CallerLayerInfo{}
+	//pc, file, line, ok := runtime.Caller(skip + 1)
+	//if !ok {
+	//	result.Ok = ok
+	//	return result
+	//}
+	//baseFile := filepath.Base(file)
+	//funcName := runtime.FuncForPC(pc).Name()
+	//if idx := strings.LastIndex(funcName, "."); idx != -1 {
+	//	funcName = funcName[idx+1:]
+	//}
+	//result.FileName = baseFile
+	//result.Function = funcName
+	//result.Line = line
+	//result.Ok = ok
+	//return result
 }
 
 func FormatCallerLineKey(skip int) string {
@@ -44,4 +46,38 @@ func FormatCallerLineKey(skip int) string {
 	sb.WriteString(":")
 	sb.WriteString(strconv.Itoa(callerInfo.Line))
 	return sb.String()
+}
+
+func GetCallerPC(skip int) uintptr {
+	pcs := make([]uintptr, 1)
+	n := runtime.Callers(skip+2, pcs[:])
+	if n == 0 {
+		return 0
+	}
+	return pcs[0]
+}
+
+func GetCallerLayerInfoFromPC(pc uintptr) CallerLayerInfo {
+	fn := runtime.FuncForPC(pc)
+	if fn == nil {
+		return CallerLayerInfo{
+			FileName: "unknown",
+			Function: "unknown",
+			Line:     0,
+			Ok:       false,
+		}
+	}
+
+	result := CallerLayerInfo{}
+	file, line := fn.FileLine(pc)
+	funcName := fn.Name()
+	baseFile := filepath.Base(file)
+	if idx := strings.LastIndex(funcName, "."); idx != -1 {
+		funcName = funcName[idx+1:]
+	}
+	result.FileName = baseFile
+	result.Function = funcName
+	result.Line = line
+	result.Ok = true
+	return result
 }

@@ -1,7 +1,7 @@
 package periodTrigger
 
-type periodTrigger struct {
-	Key                   string
+type uintPeriodTrigger struct {
+	Key                   uint64
 	IntervalNs            int64 // unit:ns
 	AccessTs              int64 // unit:ns
 	LastTriggerTs         int64 // unit:ns
@@ -9,8 +9,8 @@ type periodTrigger struct {
 	CurrentTotalCount     uint64
 }
 
-func newPeriodTrigger(key string, intervalNs int64) *periodTrigger {
-	model := new(periodTrigger)
+func newUintPeriodTrigger(key uint64, intervalNs int64) *uintPeriodTrigger {
+	model := new(uintPeriodTrigger)
 	model.Key = key
 	model.IntervalNs = intervalNs
 	model.AccessTs = 0
@@ -20,7 +20,7 @@ func newPeriodTrigger(key string, intervalNs int64) *periodTrigger {
 	return model
 }
 
-func (c *periodTrigger) Check(ts int64) TriggerState {
+func (c *uintPeriodTrigger) Check(ts int64) TriggerState {
 	result := TriggerState{}
 	result.IntervalNs = c.IntervalNs
 	result.LastTriggerTs = c.LastTriggerTs

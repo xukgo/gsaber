@@ -1,9 +1,10 @@
 package periodTrigger
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_hashCollection01(t *testing.T) {
