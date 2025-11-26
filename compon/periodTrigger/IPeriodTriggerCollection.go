@@ -12,6 +12,7 @@ type TriggerState struct {
 
 type IPeriodTriggerCollection interface {
 	Check(key string, ts int64, interval time.Duration) TriggerState
+	CheckUint(key uint64, ts int64, interval time.Duration) TriggerState
 	CheckDefaultFuncLine(ts int64, interval time.Duration) TriggerState
 	Evict(ts int64) int
 	Count() int

@@ -28,8 +28,11 @@ func NewHashCollection(evictDuration, stableInterval time.Duration) *HashCollect
 }
 
 func (c *HashCollection) CheckDefaultFuncLine(ts_ns int64, interval time.Duration) TriggerState {
-	key := reflectUtil.FormatCallerLineKey(1)
-	return c.Check(key, ts_ns, interval)
+	pc := reflectUtil.GetCallerPC(1)
+	//callerInfo := reflectUtil.GetCallerLayerInfoFromPC(pc)
+	//_ = callerInfo
+	//key := reflectUtil.FormatCallerLineKey(1)
+	return c.CheckUint(uint64(pc), ts_ns, interval)
 }
 
 func (c *HashCollection) Check(key string, ts_ns int64, interval time.Duration) TriggerState {
