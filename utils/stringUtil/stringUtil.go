@@ -3,11 +3,11 @@ package stringUtil
 import (
 	"bytes"
 	"fmt"
-	"github.com/xukgo/gsaber/utils/ruleUtil"
-	"reflect"
 	"regexp"
 	"strings"
 	"unsafe"
+
+	"github.com/xukgo/gsaber/utils/ruleUtil"
 )
 
 // 判断src偏移位置开始是否以match开头,不做空字符串的匹配
@@ -148,30 +148,42 @@ func SplitMapFormatString(str string) (string, string, error) {
 	return sarr[0], sarr[1], nil
 }
 
-// b2s converts byte slice to a string without memory allocation.
+// NoCopyBytes2String b2s converts byte slice to a string without memory allocation.
 // See https://groups.google.com/forum/#!msg/Golang-Nuts/ENgbUzYvCuU/90yGx7GUAgAJ .
 //
 // Note it may break if string and/or slice header will change
 // in the future go versions.
 func NoCopyBytes2String(b []byte) string {
-	/* #nosec G103 */
-	return *(*string)(unsafe.Pointer(&b))
+	if len(b) > 0 {
+		/* #nosec G103 */
+		return *(*string)(unsafe.Pointer(&b))
+	} else {
+		return ""
+	}
 }
 
-// s2b converts string to a byte slice without memory allocation.
+// NoCopyString2Bytes s2b converts string to a byte slice without memory allocation.
 //
 // Note it may break if string and/or slice header will change
 // in the future go versions.
-func NoCopyString2Bytes(s string) (b []byte) {
-	/* #nosec G103 */
-	bh := (*reflect.SliceHeader)(unsafe.Pointer(&b))
-	/* #nosec G103 */
-	sh := (*reflect.StringHeader)(unsafe.Pointer(&s))
-	bh.Data = sh.Data
-	bh.Len = sh.Len
-	bh.Cap = sh.Len
-	return b
+func NoCopyString2Bytes(s string) []byte {
+	if len(s) > 0 {
+		return unsafe.Slice(unsafe.StringData(s), len(s))
+	} else {
+		return nil
+	}
 }
+
+//func NoCopyString2Bytes(s string) (b []byte) {
+//	/* #nosec G103 */
+//	bh := (*reflect.SliceHeader)(unsafe.Pointer(&b))
+//	/* #nosec G103 */
+//	sh := (*reflect.StringHeader)(unsafe.Pointer(&s))
+//	bh.Data = sh.Data
+//	bh.Len = sh.Len
+//	bh.Cap = sh.Len
+//	return b
+//}
 
 func ExtractNumberStrings(str string) []string {
 	reg := regexp.MustCompile("[0-9]*\\.?[0-9]+")

@@ -1,8 +1,9 @@
 package sliceUtil
 
 import (
-	"github.com/xukgo/gsaber/utils/randomUtil"
 	"strings"
+
+	"github.com/xukgo/gsaber/utils/randomUtil"
 )
 
 func RemoveMatchString(arr []string, match string, matchCase bool) []string {
