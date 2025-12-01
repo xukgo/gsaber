@@ -91,7 +91,7 @@ func ToUpper(s string, b *strings.Builder) {
 // Map returns a copy of the string s with all its characters modified
 // according to the mapping function. If mapping returns a negative value, the character is
 // dropped from the string with no replacement.
-func Map(mapping func(rune) rune, s string, b *strings.Builder) string {
+func Map(mapping func(rune) rune, s string, b *strings.Builder) {
 	// In the worst case, the string can grow when mapped, making
 	// things unpleasant. But it's so rare we barge in assuming it's
 	// fine. It could also shrink but that falls out naturally.
@@ -126,7 +126,8 @@ func Map(mapping func(rune) rune, s string, b *strings.Builder) string {
 
 	// Fast path for unchanged input
 	if b.Cap() == 0 { // didn't call b.Grow above
-		return s
+		b.WriteString(s)
+		return
 	}
 
 	for _, c := range s {
@@ -144,6 +145,4 @@ func Map(mapping func(rune) rune, s string, b *strings.Builder) string {
 			}
 		}
 	}
-
-	return b.String()
 }
