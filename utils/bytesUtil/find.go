@@ -1,4 +1,4 @@
-package arrayUtil
+package bytesUtil
 
 import (
 	"math/bits"

@@ -3,6 +3,8 @@ package arrayUtil
 import (
 	"reflect"
 	"strings"
+
+	"github.com/xukgo/gsaber/utils/bytesUtil"
 )
 
 // Contains Returns the index position of the val in array
@@ -27,7 +29,7 @@ func Contains(array interface{}, val interface{}) (index int) {
 func ContainsBytes(array [][]byte, val []byte) (index int) {
 	index = -1
 	for i := 0; i < len(array); i++ {
-		if EqualsBytes(array[i], val) {
+		if bytesUtil.EqualsBytes(array[i], val) {
 			index = i
 			return
 		}
